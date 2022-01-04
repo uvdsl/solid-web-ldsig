@@ -39,6 +39,7 @@ import {
   parseToN3,
 } from "@/lib/solidRequests";
 import { toTTL } from "@/lib/n3Extensions";
+import { hashRDF } from "@/lib/canon";
 
 export default defineComponent({
   name: "Scribe",
@@ -54,6 +55,16 @@ export default defineComponent({
     const isHTTP = computed(
       () => uri.value.startsWith("http://") || uri.value.startsWith("https://")
     );
+    const addSuffix = (uri: string, suffix: string) => {
+      if (uri.includes("__0x")) {
+            const end_index = uri.lastIndexOf("__0x");
+            uri = uri.substring(0, end_index);
+            console.log(uri);
+          }
+          uri += "__0x" + suffix;
+          return uri
+    }
+
     // content of the information resource
     const content = ref("");
 
@@ -93,7 +104,7 @@ export default defineComponent({
         label: "Save",
         icon: "pi pi-save",
         tooltipOptions: "left",
-        command: () => {
+        command: async () => {
           if (!isHTTP.value) {
             toast.add({
               severity: "error",
@@ -103,6 +114,8 @@ export default defineComponent({
             });
             return;
           }
+          const hashHex = await hashRDF(content.value);
+          uri.value = addSuffix(uri.value, hashHex);
           putResource(uri.value, content.value, authFetch.value)
             .then(() =>
               toast.add({
@@ -139,47 +152,47 @@ export default defineComponent({
             .then(() =>
               toast.add({
                 severity: "success",
-                summary: "Correct Syntax!",
+                summary: "Correct Syntax.",
                 detail: "Good job!",
                 life: 5000,
               })
             );
         },
       },
-      {
-        label: "Prettify Triples\n(removes comments)",
-        icon: "pi pi-star",
-        command: () => {
-          parseToN3(content.value, uri.value)
-            .catch((err) => {
-              toast.add({
-                severity: "error",
-                summary: "Error while parsing!",
-                detail: err,
-                life: 5000,
-              });
-              throw new Error(err);
-            })
-            .then(
-              (parsedN3) =>
-                //   n3Store.value = parsedN3.store;
-                //   n3Prefixes.value = parsedN3.prefixes;
-                (content.value = toTTL(
-                  parsedN3.store,
-                  parsedN3.prefixes,
-                  uri.value
-                ))
-            )
-            .then(() =>
-              toast.add({
-                severity: "success",
-                summary: "Prettified Triples!",
-                detail: "But all your comments are gone.",
-                life: 5000,
-              })
-            );
-        },
-      },
+      // {
+      //   label: "Prettify Triples\n(removes comments)",
+      //   icon: "pi pi-star",
+      //   command: () => {
+      //     parseToN3(content.value, uri.value)
+      //       .catch((err) => {
+      //         toast.add({
+      //           severity: "error",
+      //           summary: "Error while parsing!",
+      //           detail: err,
+      //           life: 5000,
+      //         });
+      //         throw new Error(err);
+      //       })
+      //       .then(
+      //         (parsedN3) =>
+      //           //   n3Store.value = parsedN3.store;
+      //           //   n3Prefixes.value = parsedN3.prefixes;
+      //           (content.value = toTTL(
+      //             parsedN3.store,
+      //             parsedN3.prefixes,
+      //             uri.value
+      //           ))
+      //       )
+      //       .then(() =>
+      //         toast.add({
+      //           severity: "success",
+      //           summary: "Prettified Triples!",
+      //           detail: "But all your comments are gone.",
+      //           life: 5000,
+      //         })
+      //       );
+      //   },
+      // },
       {
         label: "Delete",
         icon: "pi pi-times",

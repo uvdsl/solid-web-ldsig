@@ -10,6 +10,7 @@
   "dependencies": {
     "@inrupt/solid-client-authn-browser": "^1.7.2",
     "@types/n3": "^1.10.2",
+    "canonrdf": "0.0.2",
     "core-js": "^3.6.5",
     "n3": "^1.11.1",
     "primeflex": "^2.0.0",
