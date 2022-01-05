@@ -24,7 +24,6 @@
       />
     </div>
   </div>
-  <Toast position="bottom-right" />
 </template>
 
 <script lang="ts">
