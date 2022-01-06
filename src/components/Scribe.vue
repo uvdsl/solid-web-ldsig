@@ -43,7 +43,7 @@ import {
   parseToN3,
 } from "@/lib/solidRequests";
 import { toTTL } from "@/lib/n3Extensions";
-import { createLDSignature } from "@/lib/ldsig";
+import { createLDSignature, verifyLDSignature } from "@/lib/ldsig";
 
 import KeyDialog from "@/components/KeyDialog.vue";
 import { sign } from "@/lib/crypt";
@@ -105,10 +105,28 @@ export default defineComponent({
         .then((resp) => resp.text());
       //   const parsedN3 =
       await parseToN3(txt, uri.value.split("__0x")[0])
+        .then((parsedN3) => verifyLDSignature(parsedN3.store))
+        .then((isVerified) => {
+          if (isVerified) {
+            toast.add({
+              severity: "success",
+              summary: "Successful Verification!",
+              detail: "Linked Data Signature verified.",
+              life: 5000,
+            });
+          } else {
+            toast.add({
+              severity: "error",
+              summary: "Not verified!",
+              detail: "Linked Data Signature could not be verified.",
+              life: 5000,
+            });
+          }
+        })
         .catch((err) => {
           toast.add({
             severity: "error",
-            summary: "Error while parsing!",
+            summary: "Error!",
             detail: err,
             life: 5000,
           });
@@ -140,7 +158,7 @@ export default defineComponent({
           toast.add({
             severity: "success",
             summary: "Successful Save!",
-            detail: "The workflow has been put at the URI.",
+            detail: "The resource has been put at the URI.",
             life: 5000,
           })
         )

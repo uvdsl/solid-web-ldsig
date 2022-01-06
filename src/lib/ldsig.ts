@@ -70,3 +70,8 @@ const createReferenceToTriples = async (rdf: string) => {
   // ... simply to text and enquote
   return { ref_store, ref_prefixes: prefixes }
 }
+
+
+export const verifyLDSignature = async (rdf: Store) => {
+  return false;
+}
