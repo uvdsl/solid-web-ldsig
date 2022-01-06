@@ -1,5 +1,23 @@
 <template>
-  <Button @click="createKeyPair"> boop! </Button>
+  <div class="p-inputgroup">
+    <InputText
+      v-model="keyName"
+      @keyup.enter="createKeyPair(keyName)"
+      placeholder="Create a new keypair."
+    />
+    <Button @click="createKeyPair(keyName)"> <i class="pi pi-key" /> </Button>
+  </div>
+  <Listbox
+    v-if="!loading"
+    v-model="selectedKey"
+    :options="keys"
+    optionLabel="label"
+    @click="emitSelectedJWK"
+  />
+  <div v-else class="p-col-6 p-offset-3"  style="margin-top: 10px">
+    <i class="pi pi-spin pi-key" />
+    <span> Loading ...</span>
+  </div>
 </template>
 
 <script lang="ts">
@@ -12,32 +30,51 @@ import {
   getResource,
   parseToN3,
 } from "@/lib/solidRequests";
+import { createECDSAKeyPair } from "@/lib/crypt";
 import { Store } from "n3";
 import { useToast } from "primevue/usetoast";
-import { computed, defineComponent, Ref, toRefs, watch } from "vue";
+import { computed, defineComponent, ref, Ref, toRefs, watch } from "vue";
 
 export default defineComponent({
   name: "KeyManager",
   components: {},
-  async setup() {
+  emits: ["selectedKey"],
+  setup(props, context) {
     const toast = useToast();
     const { authFetch, sessionInfo } = useSolidSession();
     const { webId } = toRefs(sessionInfo);
+    const loading = ref(false);
     const baseURI = computed(() => {
       return webId?.value ? webId.value.split("/profile")[0] : undefined;
     });
 
-    // embed keys in RDF
-    const createRDFofKey = (jwk: string, pubKeyLoc?: string) => {
-      let keyRDF = 
-` <>  <https://w3id.org/security#controller> <${webId?.value}> ;
-      <https://w3id.org/security#${(pubKeyLoc)?'private':'public'}KeyJwk> """${jwk}"""^^<http://www.w3.org/1999/02/22-rdf-syntax-ns#JSON> `;
-      keyRDF += pubKeyLoc
-        ? `;
-      <https://w3id.org/security#publicKey> <${pubKeyLoc}> .`
-        : `.`;
-      return keyRDF;
-    };
+    // const publicKeysRDF: Ref<Store> = ref(new Store());
+    const privateKeysRDF: Ref<Store | undefined> = ref();
+    const keys = computed(() => {
+      const jwkQuads = privateKeysRDF.value?.getQuads(
+        null,
+        "https://w3id.org/security#privateKeyJwk",
+        null,
+        null
+      );
+      return jwkQuads
+        ?.map((quad) => {
+          return {
+            uri: quad.subject.id,
+            label: privateKeysRDF.value?.getObjects(
+              quad.subject,
+              "http://www.w3.org/2000/01/rdf-schema#label",
+              null
+            )[0]?.value,
+            jwk: quad.object.value,
+          };
+        })
+        .filter((key) => key.label);
+    });
+    const selectedKey: Ref<
+      { uri: string; label: string; jwk: string } | undefined
+    > = ref();
+    const keyName = ref("");
 
     // get the keys
     const getContainerItems = async (containerURI: string) => {
@@ -61,10 +98,13 @@ export default defineComponent({
 
     watch(
       () => baseURI.value,
-      async (first, second) => {
+      async () => {
+        privateKeysRDF.value = undefined;
         if (baseURI.value) {
+          loading.value = true;
           const publicKeyFolder = `${baseURI.value}/public/keys/`;
-          const publicKeyRDF = await getContainerItems(publicKeyFolder).catch(
+          const pubFolderPromise = getResource(publicKeyFolder).catch(
+            //   publicKeysRDF.value =  await getContainerItems(publicKeyFolder).catch(
             (err) => {
               // make sure key directories exist
               if (err.message.includes("`404`")) {
@@ -83,42 +123,62 @@ export default defineComponent({
               return err;
             }
           );
-          console.log(publicKeyRDF)
           const privateKeyFolder = `${baseURI.value}/private/keys/`;
-          const privateKeyURIs = await getContainerItems(privateKeyFolder).catch(
-            (err) => {
-              // make sure key directories exist
-              if (err.message.includes("`404`")) {
-                toast.add({
-                  severity: "warn",
-                  summary: "Private Key directory not found.",
-                  detail: "Creating it now.",
-                  life: 5000,
-                });
-                return createContainer(
-                  `${baseURI.value}/private/`,
-                  "keys",
-                  authFetch.value
-                );
-              }
-              return err;
+          privateKeysRDF.value = await getContainerItems(
+            privateKeyFolder
+          ).catch((err) => {
+            // make sure key directories exist
+            if (err.message.includes("`404`")) {
+              toast.add({
+                severity: "warn",
+                summary: "Private Key directory not found.",
+                detail: "Creating it now.",
+                life: 5000,
+              });
+              return createContainer(
+                `${baseURI.value}/private/`,
+                "keys",
+                authFetch.value
+              );
             }
-          );
-          console.log(privateKeyURIs)
+            return err;
+          });
+          pubFolderPromise.then(() => (loading.value = false));
         }
-      }
+      },
+      { immediate: true }
     );
 
-    const createKeyPair = async () => {
+    // embed keys in RDF
+    const createRDFofKey = (label: string, jwk: string, pubKeyLoc?: string) => {
+      let keyRDF = ` <>  <http://www.w3.org/2000/01/rdf-schema#label> "${label}" ;
+      <https://w3id.org/security#controller> <${webId?.value}> ;
+      <https://w3id.org/security#${
+        pubKeyLoc ? "private" : "public"
+      }KeyJwk> """${jwk}"""^^<http://www.w3.org/1999/02/22-rdf-syntax-ns#JSON> `;
+      keyRDF += pubKeyLoc
+        ? `;
+      <https://w3id.org/security#publicKey> <${pubKeyLoc}> .`
+        : `.`;
+      return keyRDF;
+    };
+
+    const createKeyPair = async (label: string) => {
+      if (
+        keyName.value === undefined ||
+        keyName.value === null ||
+        keyName.value == ""
+      ) {
+        toast.add({
+          severity: "error",
+          summary: "Error on key creation!",
+          detail: "Please give it a name.",
+          life: 5000,
+        });
+        return;
+      }
       // generate new keypair
-      let keyPair = await window.crypto.subtle.generateKey(
-        {
-          name: "ECDSA",
-          namedCurve: "P-256",
-        },
-        true,
-        ["sign", "verify"]
-      );
+      let keyPair = await createECDSAKeyPair();
       let publicKey = keyPair.publicKey as CryptoKey;
       let privateKey = keyPair.privateKey as CryptoKey;
 
@@ -131,18 +191,22 @@ export default defineComponent({
         .then(JSON.stringify);
 
       // store the keys in solid pod
+      const publicKeyFolder = `${baseURI.value}/public/keys/`;
       const pubKeyCREATE = createResource(
-        `${baseURI.value}/public/keys/`,
-        createRDFofKey(pubKeyJWK),
+        publicKeyFolder,
+        createRDFofKey(label, pubKeyJWK),
         authFetch.value
       );
       const pubKeyLocation = await pubKeyCREATE.then(getLocationHeader);
+      const privateKeyFolder = `${baseURI.value}/private/keys/`;
       const privKeyCREATE = createResource(
-        `${baseURI.value}/private/keys/`,
-        createRDFofKey(pubKeyJWK, pubKeyLocation),
+        privateKeyFolder,
+        createRDFofKey(label, privKeyJWK, pubKeyLocation),
         authFetch.value
       );
       Promise.all([pubKeyCREATE, privKeyCREATE])
+        .then(() => getContainerItems(privateKeyFolder))
+        .then((rdf) => (privateKeysRDF.value = rdf))
         .then(() =>
           toast.add({
             severity: "success",
@@ -161,63 +225,17 @@ export default defineComponent({
         );
     };
 
-    const importKey = async (jwk: any) => {
-      // I know, I know, but typescript is confused here.
-      return crypto.subtle.importKey(
-        "jwk",
-        jwk,
-        {
-          name: "ECDSA",
-          namedCurve: jwk.crv as string,
-        },
-        jwk.ext as boolean,
-        jwk.key_ops as any // I know, I know, but typescript is confused here.
-      );
-    };
-
-    // signature creation
-    const sign = async (message: string, privateKey: CryptoKey) => {
-      const encMsg = new TextEncoder().encode(message);
-      return window.crypto.subtle
-        .sign(
-          {
-            name: "ECDSA",
-            hash: { name: "SHA-256" },
-          },
-          privateKey,
-          encMsg
-        )
-        .then((arrBuf) =>
-          Array.from(new Uint8Array(arrBuf))
-            .map((b) => b.toString(16).padStart(2, "0"))
-            .join("")
-        );
-    };
-
-    // on GET of message
-    const verify = async (
-      message: string,
-      signature: Buffer,
-      publicKey: CryptoKey
-    ) => {
-      const encMsg = new TextEncoder().encode(message);
-      // retrieve pubKey from LDProof
-
-      return window.crypto.subtle.verify(
-        {
-          name: "ECDSA",
-          hash: { name: "SHA-256" },
-        },
-        publicKey,
-        signature,
-        encMsg
-      );
+    const emitSelectedJWK = () => {
+      if (selectedKey.value) context.emit("selectedKey", selectedKey.value);
     };
 
     return {
+      loading,
       createKeyPair,
-      sign,
-      verify,
+      keyName,
+      selectedKey,
+      keys,
+      emitSelectedJWK,
     };
   },
 });

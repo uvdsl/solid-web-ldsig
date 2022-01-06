@@ -10,29 +10,20 @@
   </Suspense> -->
   <!-- </div> -->
   <Scribe />
- 
-   <Suspense>
-    <template #default>
-       <KeyManager />
-    </template>
-    <template #fallback>
-      <div>Loading...</div>
-    </template>
-  </Suspense>
-   <Toast position="bottom-right" />
+
+  <Toast position="bottom-right" />
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, ref } from "vue";
 // import Messenger from "@/components/Messenger.vue";
 import Scribe from "@/components/Scribe.vue";
-import KeyManager from "@/components/KeyManager.vue";
+
 
 export default defineComponent({
   name: "Home",
   components: {
     Scribe,
-    KeyManager,
   },
 });
 </script>

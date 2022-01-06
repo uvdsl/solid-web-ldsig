@@ -24,6 +24,11 @@
       />
     </div>
   </div>
+  <KeyDialog
+    @selectedCryptoKey="resumeSaveAction"
+    @hide="displayKeyDialog = false"
+    :display="displayKeyDialog"
+  />
 </template>
 
 <script lang="ts">
@@ -40,12 +45,16 @@ import {
 import { toTTL } from "@/lib/n3Extensions";
 import { hashRDF } from "@/lib/canon";
 
+import KeyDialog from "@/components/KeyDialog.vue";
+import { sign } from "@/lib/crypt";
+
 export default defineComponent({
   name: "Scribe",
-  components: {},
+  components: { KeyDialog },
   setup() {
     const toast = useToast();
     const { authFetch } = useSolidSession();
+    const displayKeyDialog = ref(false);
     // const n3Store = ref();
     // const n3Prefixes = ref();
 
@@ -56,13 +65,13 @@ export default defineComponent({
     );
     const addSuffix = (uri: string, suffix: string) => {
       if (uri.includes("__0x")) {
-            const end_index = uri.lastIndexOf("__0x");
-            uri = uri.substring(0, end_index);
-            console.log(uri);
-          }
-          uri += "__0x" + suffix;
-          return uri
-    }
+        const end_index = uri.lastIndexOf("__0x");
+        uri = uri.substring(0, end_index);
+        console.log(uri);
+      }
+      uri += "__0x" + suffix;
+      return uri;
+    };
 
     // content of the information resource
     const content = ref("");
@@ -97,6 +106,32 @@ export default defineComponent({
         .finally(() => (content.value = txt));
     };
 
+    const resumeSaveAction = async (key: CryptoKey) => {
+      displayKeyDialog.value = false
+      const hashHex = await hashRDF(content.value); // FIXME double hashing, oh well.
+      const signHex = await sign(hashHex,key);
+      console.log("Signature:",signHex)
+      uri.value = addSuffix(uri.value, signHex);
+      // TODO add LD-Proof with sig and all
+      putResource(uri.value, content.value, authFetch.value)
+        .then(() =>
+          toast.add({
+            severity: "success",
+            summary: "Successful Save!",
+            detail: "The workflow has been put at the URI.",
+            life: 5000,
+          })
+        )
+        .catch((err) =>
+          toast.add({
+            severity: "error",
+            summary: "Error on save!",
+            detail: err,
+            life: 5000,
+          })
+        );
+    };
+
     // Speeddial
     const speedDialActions = [
       {
@@ -113,25 +148,27 @@ export default defineComponent({
             });
             return;
           }
-          const hashHex = await hashRDF(content.value);
-          uri.value = addSuffix(uri.value, hashHex);
-          putResource(uri.value, content.value, authFetch.value)
-            .then(() =>
-              toast.add({
-                severity: "success",
-                summary: "Successful Save!",
-                detail: "The workflow has been put at the URI.",
-                life: 5000,
-              })
-            )
-            .catch((err) =>
-              toast.add({
-                severity: "error",
-                summary: "Error on save!",
-                detail: err,
-                life: 5000,
-              })
-            );
+          requestCryptoKey();
+          // const hashHex = await hashRDF(content.value);
+          // uri.value = addSuffix(uri.value, hashHex);
+
+          // putResource(uri.value, content.value, authFetch.value)
+          //   .then(() =>
+          //     toast.add({
+          //       severity: "success",
+          //       summary: "Successful Save!",
+          //       detail: "The workflow has been put at the URI.",
+          //       life: 5000,
+          //     })
+          //   )
+          //   .catch((err) =>
+          //     toast.add({
+          //       severity: "error",
+          //       summary: "Error on save!",
+          //       detail: err,
+          //       life: 5000,
+          //     })
+          //   );
         },
       },
       {
@@ -225,7 +262,11 @@ export default defineComponent({
         },
       },
     ];
-    return { uri, fetch, content, speedDialActions };
+
+    const requestCryptoKey = () => {
+      displayKeyDialog.value = true;
+    };
+    return { resumeSaveAction, displayKeyDialog, uri, fetch, content, speedDialActions };
   },
 });
 </script>
