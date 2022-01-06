@@ -47,6 +47,7 @@ import { createLDSignature } from "@/lib/ldsig";
 
 import KeyDialog from "@/components/KeyDialog.vue";
 import { sign } from "@/lib/crypt";
+import { Writer } from "n3";
 
 export default defineComponent({
   name: "Scribe",
@@ -76,9 +77,15 @@ export default defineComponent({
 
     // content of the information resource
     const content = ref("");
-    const addLDSig = (rdf: string, rdf_sig: string) => {
-      return `${rdf}\n${rdf_sig}`
-    }
+
+    const addLDSig = async (rdf: string, rdf_sig: string) => {
+      const { store, prefixes } = await parseToN3(`${rdf}\n${rdf_sig}`, "");
+      const writer = new Writer({ format: "turtle*", prefixes });
+      writer.addQuads(store.getQuads(null, null, null, null));
+      let message = "";
+      writer.end((err, res) => (message = res));
+      return message;
+    };
 
     // get content of information resource
     const fetch = async () => {
@@ -97,7 +104,7 @@ export default defineComponent({
         })
         .then((resp) => resp.text());
       //   const parsedN3 =
-      await parseToN3(txt, uri.value)
+      await parseToN3(txt, uri.value.split("__0x")[0])
         .catch((err) => {
           toast.add({
             severity: "error",
@@ -118,16 +125,16 @@ export default defineComponent({
     }) => {
       displayKeyDialog.value = false;
 
-      const {rdf: rdf_sig, hash, signature } = await createLDSignature(
+      const { rdf_signature, hash, signature } = await createLDSignature(
         content.value,
         key,
         webId?.value as string,
         new Date()
       );
-      console.log("Hash:", hash);
-      console.log("Signature:", signature);
+      // console.log("Hash:", hash);
+      // console.log("Signature:", signature);
       uri.value = addSuffix(uri.value, signature);
-      content.value = addLDSig(content.value, rdf_sig)
+      content.value = await addLDSig(content.value, rdf_signature);
       putResource(uri.value, content.value, authFetch.value)
         .then(() =>
           toast.add({
