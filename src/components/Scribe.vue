@@ -32,7 +32,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed } from "vue";
+import { defineComponent, ref, computed, toRefs } from "vue";
 import { useSolidSession } from "@/composables/useSolidSession";
 
 import { useToast } from "primevue/usetoast";
@@ -43,7 +43,7 @@ import {
   parseToN3,
 } from "@/lib/solidRequests";
 import { toTTL } from "@/lib/n3Extensions";
-import { hashRDF } from "@/lib/canon";
+import { createLDSignature } from "@/lib/ldsig";
 
 import KeyDialog from "@/components/KeyDialog.vue";
 import { sign } from "@/lib/crypt";
@@ -53,7 +53,8 @@ export default defineComponent({
   components: { KeyDialog },
   setup() {
     const toast = useToast();
-    const { authFetch } = useSolidSession();
+    const { authFetch, sessionInfo } = useSolidSession();
+    const { webId } = toRefs(sessionInfo);
     const displayKeyDialog = ref(false);
     // const n3Store = ref();
     // const n3Prefixes = ref();
@@ -75,6 +76,9 @@ export default defineComponent({
 
     // content of the information resource
     const content = ref("");
+    const addLDSig = (rdf: string, rdf_sig: string) => {
+      return `${rdf}\n${rdf_sig}`
+    }
 
     // get content of information resource
     const fetch = async () => {
@@ -106,13 +110,24 @@ export default defineComponent({
         .finally(() => (content.value = txt));
     };
 
-    const resumeSaveAction = async (key: CryptoKey) => {
-      displayKeyDialog.value = false
-      const hashHex = await hashRDF(content.value); // FIXME double hashing, oh well.
-      const signHex = await sign(hashHex,key);
-      console.log("Signature:",signHex)
-      uri.value = addSuffix(uri.value, signHex);
-      // TODO add LD-Proof with sig and all
+    const resumeSaveAction = async (key: {
+      uri: string;
+      label: string;
+      pubKeyLoc: string;
+      jwk: string;
+    }) => {
+      displayKeyDialog.value = false;
+
+      const {rdf: rdf_sig, hash, signature } = await createLDSignature(
+        content.value,
+        key,
+        webId?.value as string,
+        new Date()
+      );
+      console.log("Hash:", hash);
+      console.log("Signature:", signature);
+      uri.value = addSuffix(uri.value, signature);
+      content.value = addLDSig(content.value, rdf_sig)
       putResource(uri.value, content.value, authFetch.value)
         .then(() =>
           toast.add({
@@ -266,7 +281,14 @@ export default defineComponent({
     const requestCryptoKey = () => {
       displayKeyDialog.value = true;
     };
-    return { resumeSaveAction, displayKeyDialog, uri, fetch, content, speedDialActions };
+    return {
+      resumeSaveAction,
+      displayKeyDialog,
+      uri,
+      fetch,
+      content,
+      speedDialActions,
+    };
   },
 });
 </script>

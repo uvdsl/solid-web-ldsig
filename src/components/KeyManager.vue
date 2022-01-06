@@ -66,13 +66,18 @@ export default defineComponent({
               "http://www.w3.org/2000/01/rdf-schema#label",
               null
             )[0]?.value,
+            pubKeyLoc: privateKeysRDF.value?.getObjects(
+              quad.subject,
+              "https://w3id.org/security#publicKey",
+              null
+            )[0]?.id,
             jwk: quad.object.value,
           };
         })
         .filter((key) => key.label);
     });
     const selectedKey: Ref<
-      { uri: string; label: string; jwk: string } | undefined
+      { uri: string; label: string; pubKeyLoc: string, jwk: string } | undefined
     > = ref();
     const keyName = ref("");
 

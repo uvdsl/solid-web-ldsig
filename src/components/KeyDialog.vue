@@ -37,11 +37,12 @@ export default defineComponent({
       }
     );
 
-    let selectedKey: { uri: string; label: string; jwk: string };
+    let selectedKey: { uri: string; label: string; pubKeyLoc: string, jwk: string };
 
     const setSelectedKey = (key: {
       uri: string;
       label: string;
+      pubKeyLoc: string;
       jwk: string;
     }) => {
       selectedKey = key;
@@ -57,8 +58,9 @@ export default defineComponent({
         });
         return;
       }
-      const key = await importKey(JSON.parse(selectedKey.jwk));
-      context.emit("selectedCryptoKey", key);
+    //   const key = await importKey(JSON.parse(selectedKey.jwk));
+    //   context.emit("selectedCryptoKey", key);
+      context.emit("selectedCryptoKey", selectedKey);
     };
 
     const emitHide = () => {

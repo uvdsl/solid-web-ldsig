@@ -1,5 +1,6 @@
 import { Parser, Quad, Store, Writer } from "n3";
 import { isoCanonicalise } from "canonrdf";
+import { sign } from "./crypt";
 
 const _strcmp = (a: string, b: string) => {
     return a < b ? -1 : a > b ? 1 : 0;
@@ -14,7 +15,7 @@ const compareQuads = (quad_a: Quad, quad_b: Quad) => {
     return cmp;
 };
 
-export const hashRDF = async (rdf: string) => {
+export const canonRDF = (rdf: string) => {
     let store = new Store();
     const parser = new Parser();
     store.addQuads(parser.parse(rdf));
@@ -25,9 +26,23 @@ export const hashRDF = async (rdf: string) => {
         store.getQuads(null, null, null, null).sort(compareQuads)); // sort by ASCII
     let message = "";
     writer.end((err, res) => (message = res));
+    return message;
+}
+
+
+export const hashRDF = async (rdf: string) => {
+    const message = canonRDF(rdf);
     const hashBuffer = await crypto.subtle.digest("SHA-256", Buffer.from(message));
     const hashHex = Array.from(new Uint8Array(hashBuffer))
         .map((b) => b.toString(16).padStart(2, "0"))
         .join(""); // convert bytes to hex string
-    return hashHex
+    return hashHex;
 }
+
+
+export const signRDF = async (rdf: string, key: CryptoKey) => {
+    const message = canonRDF(rdf);
+    const signHex = sign(message, key)
+    return signHex;
+}
+
