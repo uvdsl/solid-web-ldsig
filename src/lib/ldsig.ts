@@ -35,14 +35,14 @@ export const createLDSignature = async (uri:string, rdf: string, privateKey: { u
   const rei_store = await reifyTriples(base_store);
   Object.assign(base_prefixes, sig_prefixes);
 
-  const writer = new Writer({ format: "turtle*", base_prefixes })
+  const writer = new Writer({ format: "turtle*", prefixes: base_prefixes })
   writer.addQuads(base_store.getQuads(null, null, null, null))
   writer.addQuads(sig_store.getQuads(null, null, null, null))
   // link RDF
   const new_blanknodes = rei_store.getSubjects(null, null, null) // there should only be blank nodes in this
   writer.addQuad(
     new NamedNode('#signature'),
-    new NamedNode('https://w3id.org/security#proofOf'),
+    new NamedNode(SEC('proofOf')),
     writer.list(new_blanknodes)
   );
   writer.addQuads(rei_store.getQuads(null, null, null, null));
