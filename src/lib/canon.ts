@@ -1,6 +1,6 @@
-import { Parser, Quad, Store, Writer } from "n3";
+import {  Quad, Store, Writer } from "n3";
 import { isoCanonicalise } from "canonrdf";
-import { sign } from "./crypt";
+import { sign, verify } from "./crypt";
 
 const _strcmp = (a: string, b: string) => {
     return a < b ? -1 : a > b ? 1 : 0;
@@ -15,10 +15,7 @@ const compareQuads = (quad_a: Quad, quad_b: Quad) => {
     return cmp;
 };
 
-export const canonRDF = (rdf: string) => {
-    let store = new Store();
-    const parser = new Parser();
-    store.addQuads(parser.parse(rdf));
+export const canonRDF = (store: Store) => {
     store = isoCanonicalise(store);
     const writer = new Writer({ format: "N-Triples" }); // N-Triple serialisation
 
@@ -30,9 +27,8 @@ export const canonRDF = (rdf: string) => {
 }
 
 
-export const hashRDF = async (rdf: string) => {
-    const message = canonRDF(rdf);
-    const hashBuffer = await crypto.subtle.digest("SHA-256", Buffer.from(message));
+export const hashString = async (rdf: string) => {
+    const hashBuffer = await crypto.subtle.digest("SHA-256", Buffer.from(rdf));
     const hashHex = Array.from(new Uint8Array(hashBuffer))
         .map((b) => b.toString(16).padStart(2, "0"))
         .join(""); // convert bytes to hex string
@@ -40,9 +36,12 @@ export const hashRDF = async (rdf: string) => {
 }
 
 
-export const signRDF = async (rdf: string, key: CryptoKey) => {
-    const message = canonRDF(rdf);
-    const signHex = sign(message, key)
+export const signString = async (rdf: string, key: CryptoKey) => {
+    const signHex = sign(rdf, key)
     return signHex;
 }
 
+export const verifyString = async (rdf: string, sig: string, key: CryptoKey) => {
+    const signHex = verify(rdf, Buffer.from(sig, 'hex'), key)
+    return signHex;
+}

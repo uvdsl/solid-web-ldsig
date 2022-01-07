@@ -27,3 +27,4 @@ export const LDCV = Namespace(
 );
 export const WILD = Namespace("http://purl.org/wild/vocab#");
 export const VCARD = Namespace("http://www.w3.org/2006/vcard/ns#");
+export const SEC = Namespace("https://w3id.org/security#");

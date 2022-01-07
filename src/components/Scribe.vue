@@ -78,14 +78,6 @@ export default defineComponent({
     // content of the information resource
     const content = ref("");
 
-    const addLDSig = async (rdf: string, rdf_sig: string) => {
-      const { store, prefixes } = await parseToN3(`${rdf}\n${rdf_sig}`, "");
-      const writer = new Writer({ format: "turtle*", prefixes });
-      writer.addQuads(store.getQuads(null, null, null, null));
-      let message = "";
-      writer.end((err, res) => (message = res));
-      return message;
-    };
 
     // get content of information resource
     const fetch = async () => {
@@ -143,7 +135,8 @@ export default defineComponent({
     }) => {
       displayKeyDialog.value = false;
 
-      const { rdf_signature, hash, signature } = await createLDSignature(
+      const { rdf_string, hash, signature } = await createLDSignature(
+        uri.value,
         content.value,
         key,
         webId?.value as string,
@@ -152,7 +145,7 @@ export default defineComponent({
       // console.log("Hash:", hash);
       // console.log("Signature:", signature);
       uri.value = addSuffix(uri.value, signature);
-      content.value = await addLDSig(content.value, rdf_signature);
+      content.value = rdf_string;
       putResource(uri.value, content.value, authFetch.value)
         .then(() =>
           toast.add({
