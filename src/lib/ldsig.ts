@@ -77,7 +77,7 @@ export const verifyLDSignature = async (store: Store, fetch?: (url: RequestInfo,
   const sig = store.getSubjects(RDF('type'), SEC('Signature'), null)[0];
   if (!sig) return false;
   const pubKeyURI = store.getObjects(sig, SEC('publicKey'), null)[0].id;
-  const pubKey = await getResource(pubKeyURI, fetch)
+  const pubKey = getResource(pubKeyURI, fetch)
     .then(resp => resp.text())
     .then(txt => parseToN3(txt, pubKeyURI))
     .then(parsedN3 => parsedN3.store.getObjects(pubKeyURI, SEC('publicKeyJwk'), null)[0].value)
