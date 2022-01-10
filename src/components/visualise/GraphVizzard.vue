@@ -1,6 +1,8 @@
 <template>
   <div class="graphVizzard">
-    <svg id="svgGraph" ref="svgRef" />
+    <svg id="svgGraph" ref="svgRef">
+      <g id="root" />
+    </svg>
   </div>
 </template>
 
@@ -11,7 +13,7 @@ export default {
   components: {},
   props: {
     links: Array,
-    nodes: Array
+    nodes: Array,
   },
   computed: {
     // array of {name, verified}
@@ -24,7 +26,7 @@ export default {
   watch: {
     links() {
       this.update();
-    }
+    },
   },
   data() {
     return {
@@ -36,7 +38,7 @@ export default {
         .drag()
         .on("start", this.dragstarted)
         .on("drag", this.dragged)
-        .on("end", this.dragended)
+        .on("end", this.dragended),
     };
   },
   mounted() {
@@ -51,25 +53,25 @@ export default {
         "link",
         d3
           .forceLink()
-          .id(d => d.label) // set the id to "label" s.t. (force) links can be established by label, not by index
+          .id((d) => d.label) // set the id to "label" s.t. (force) links can be established by label, not by index
           .links(this.links)
       )
-      .force("charge", d3.forceManyBody().strength(-30000))
+      .force("charge", d3.forceManyBody().strength(-15000))
       .force("center", d3.forceCenter(svg_x_center, svg_y_center)) // width, height
       .on("tick", this.ticked);
 
-    this.svg.call(
-      d3.zoom().on("zoom", () => {
-        this.svg
-          .selectAll(".nodes")
-          .attr("transform", d3.event.transform.toString());
-        this.svg
-          .selectAll(".links")
-          .attr("transform", d3.event.transform.toString());
-      })
-    );
+    const zoom = d3.zoom().on("zoom", () => {
+      this.svg
+        .selectAll(".nodes")
+        .attr("transform", d3.event.transform.toString());
+      this.svg
+        .selectAll(".links")
+        .attr("transform", d3.event.transform.toString());
+    });
+    this.svg.call(zoom);
 
     this.g_link_selection = this.svg
+      .select("#root")
       .append("g")
       .attr("class", "links")
       .attr("stroke", "#999")
@@ -78,6 +80,7 @@ export default {
       .selectAll("path");
 
     this.g_node_selection = this.svg
+      .select("#root")
       .append("g")
       .attr("class", "nodes")
       .attr("fill", "currentColor")
@@ -86,6 +89,7 @@ export default {
       .selectAll("g");
 
     this.svg
+      .select("#root")
       .append("svg:defs")
       .append("svg:marker")
       .attr("id", "arrow")
@@ -104,9 +108,9 @@ export default {
     update() {
       // GRAPHICS
       this.g_node_selection = this.g_node_selection.data(this.nodes).join(
-        enter => {
+        (enter) => {
           const selection = enter.append("g").call(this.dragger);
-          const width = 395;
+          const width = 500;
           const height = 45;
           const border = 5;
           selection
@@ -122,21 +126,24 @@ export default {
 
           selection
             .append("text")
-            .text(d => d.label.split("_")[0])
+            .text((d) => {
+              const split = d.label.split("__0x");
+              return `${split[0]}__0x${split[1].substring(0, 5)}...`;
+            })
             .attr("color", "white")
             .style("text-anchor", "middle");
 
           return selection;
         },
-        update => update,
-        exit => exit.remove()
+        (update) => update,
+        (exit) => exit.remove()
       );
 
       // GRAPHICS
       this.g_link_selection = this.g_link_selection.data(this.links).join(
-        enter => enter.append("path").attr("marker-end", "url(#arrow)"), //attach the arrow from defs,
-        update => update,
-        exit => exit
+        (enter) => enter.append("path").attr("marker-end", "url(#arrow)"), //attach the arrow from defs,
+        (update) => update,
+        (exit) => exit
       );
 
       // SIMULATION
@@ -151,14 +158,17 @@ export default {
       // source right of target
       const offset_x = source.x >= target.x ? -25 : 25;
       return `M ${source.x + offset_x} ${source.y} 
-        C ${source.x + offset_x} ${source.y + 2*offset_y}, 
-          ${target.x - offset_x} ${target.y - 2*offset_y}, 
+        C ${source.x + offset_x} ${source.y + 2 * offset_y}, 
+          ${target.x - offset_x} ${target.y - 2 * offset_y}, 
           ${target.x - offset_x} ${target.y - offset_y}`;
     },
 
     ticked() {
-      this.g_link_selection.attr("d", d => this.drawPath(d.source, d.target));
-      this.g_node_selection.attr("transform", d => `translate(${d.x},${d.y})`);
+      this.g_link_selection.attr("d", (d) => this.drawPath(d.source, d.target));
+      this.g_node_selection.attr(
+        "transform",
+        (d) => `translate(${d.x},${d.y})`
+      );
     },
 
     dragstarted(d) {
@@ -184,8 +194,8 @@ export default {
         return "darkred";
       }
       return "darkgreen";
-    }
-  }
+    },
+  },
 };
 </script>
 
