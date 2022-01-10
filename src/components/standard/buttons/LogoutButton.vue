@@ -8,7 +8,7 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { useSolidSession } from "../../composables/useSolidSession";
+import { useSolidSession } from "@/composables/useSolidSession";
 
 export default defineComponent({
   name: "LoginButton",

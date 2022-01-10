@@ -1,14 +1,16 @@
-import { BlankNode, NamedNode, Term, Quad, Quad_Subject, Store, Writer, Parser } from "n3";
-import { canonRDF, hashString, signString, verifyString } from "./canon";
-import { importKey } from "./crypt";
 import { RDF, SEC } from "./namespaces";
-import { getResource, parseToN3 } from "./solidRequests";
+import { NamedNode, Quad, Store, Writer } from "n3";
 
-export const createLDSignature = async (uri:string, rdf: string, privateKey: { uri: string; label: string; pubKeyLoc: string, jwk: string }, creator: string, dateTime: Date) => {
+import { getResource, parseToN3 } from "./solidRequests";
+import { canonRDF, hashString, signString, verifyString } from "./canon";
+import { getListItems } from "./n3Extensions";
+import { importKey } from "./crypt";
+
+export const createLDSignature = async (uri: string, rdf: string, privateKey: { uri: string; label: string; pubKeyLoc: string, jwk: string }, creator: string, dateTime: Date) => {
 
   const key = await importKey(JSON.parse(privateKey.jwk));
   const pubKeyLoc = privateKey.pubKeyLoc;
-  const {store: base_store, prefixes: base_prefixes} = await parseToN3(rdf, uri)
+  const { store: base_store, prefixes: base_prefixes } = await parseToN3(rdf, uri)
   const canonicalRDF = canonRDF(base_store);
   const hash = await hashString(canonicalRDF)
   const signature = await signString(canonicalRDF, key);
@@ -31,7 +33,7 @@ export const createLDSignature = async (uri:string, rdf: string, privateKey: { u
 
 
   // consolidate RDF
-  const { store:sig_store, prefixes:sig_prefixes } = await parseToN3(rdf_sig, "");
+  const { store: sig_store, prefixes: sig_prefixes } = await parseToN3(rdf_sig, "");
   const rei_store = await reifyTriples(base_store);
   Object.assign(base_prefixes, sig_prefixes);
 
@@ -99,22 +101,4 @@ export const verifyLDSignature = async (store: Store, fetch?: (url: RequestInfo,
   const signatureOK = await verifyString(canon, sigVal, await pubKey);
 
   return reifiedOK && signatureOK;
-}
-
-
-
-export function getListItems(store: Store, listStart: Term) {
-  let node = listStart;
-  const result = [];
-  while (node.value !== RDF("nil")) {
-    result.push(
-      store
-        .getQuads(node, RDF("first"), null, null)
-        .map((quad) => quad.object)
-    );
-    node = store
-      .getQuads(node, RDF("rest"), null, null)
-      .map((quad) => quad.object)[0];
-  }
-  return result.flat();
 }

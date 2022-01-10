@@ -215,26 +215,18 @@ export const toTTL = (
   return `# Parsed from underlying RDF graph.\n ${result}`;
 };
 
-/*
-  export function getListItems(n3Store, baseIRI) {
-    let node = n3Store
-      .getQuads(baseIRI, AS("items"), null, null)
+export function getListItems(store: Store, listStart: Term) {
+  let node = listStart;
+  const result = [];
+  while (node.value !== RDF("nil")) {
+    result.push(
+      store
+        .getQuads(node, RDF("first"), null, null)
+        .map((quad) => quad.object)
+    );
+    node = store
+      .getQuads(node, RDF("rest"), null, null)
       .map((quad) => quad.object)[0];
-
-    let result = [];
-
-    while (node.value !== RDF("nil")) {
-      result.push(
-        n3Store
-          .getQuads(node, RDF("first"), null, null)
-          .map((quad) => quad.object)
-      );
-      node = n3Store
-        .getQuads(node, RDF("rest"), null, null)
-        .map((quad) => quad.object)[0];
-    }
-
-    return result.flat();
   }
-
-  */
+  return result.flat();
+}

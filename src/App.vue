@@ -9,7 +9,7 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import HeaderBar from "@/components/HeaderBar.vue";
+import HeaderBar from "@/components/standard/HeaderBar.vue";
 export default defineComponent({
   name: "Home",
   components: {

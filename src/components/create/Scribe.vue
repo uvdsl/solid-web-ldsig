@@ -42,12 +42,9 @@ import {
   getResource,
   parseToN3,
 } from "@/lib/solidRequests";
-import { toTTL } from "@/lib/n3Extensions";
 import { createLDSignature, verifyLDSignature } from "@/lib/ldsig";
 
-import KeyDialog from "@/components/KeyDialog.vue";
-import { sign } from "@/lib/crypt";
-import { Writer } from "n3";
+import KeyDialog from "@/components/create/KeyDialog.vue";
 
 export default defineComponent({
   name: "Scribe",

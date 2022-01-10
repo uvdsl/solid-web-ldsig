@@ -16,8 +16,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, watch } from "vue";
-import KeyManager from "@/components/KeyManager.vue";
-import { importKey } from "@/lib/crypt";
+import KeyManager from "@/components/create/KeyManager.vue";
 import { useToast } from "primevue/usetoast";
 
 export default defineComponent({

@@ -15,11 +15,11 @@
 
 <script lang="ts">
 import { defineComponent, toRefs, ref, Ref, watch } from "vue";
-import LoginButton from "./buttons/LoginButton.vue";
-import LogoutButton from "./buttons/LogoutButton.vue";
-import { useSolidSession } from "../composables/useSolidSession";
-import { getResource, parseToN3 } from "../lib/solidRequests";
-import { VCARD } from "../lib/namespaces";
+import LoginButton from "@/components/standard/buttons/LoginButton.vue";
+import LogoutButton from "@/components/standard/buttons/LogoutButton.vue";
+import { useSolidSession } from "@/composables/useSolidSession";
+import { getResource, parseToN3 } from "@/lib/solidRequests";
+import { VCARD } from "@/lib/namespaces";
 
 export default defineComponent({
   name: "HeaderBar",
