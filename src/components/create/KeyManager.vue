@@ -14,7 +14,7 @@
     optionLabel="label"
     @click="emitSelectedJWK"
   />
-  <div v-else class="p-col-6 p-offset-3"  style="margin-top: 10px">
+  <div v-else class="p-col-6 p-offset-3" style="margin-top: 10px">
     <i class="pi pi-spin pi-key" />
     <span> Loading ...</span>
   </div>
@@ -77,7 +77,7 @@ export default defineComponent({
         .filter((key) => key.label);
     });
     const selectedKey: Ref<
-      { uri: string; label: string; pubKeyLoc: string, jwk: string } | undefined
+      { uri: string; label: string; pubKeyLoc: string; jwk: string } | undefined
     > = ref();
     const keyName = ref("");
 
@@ -144,7 +144,9 @@ export default defineComponent({
                 `${baseURI.value}/private/`,
                 "keys",
                 authFetch.value
-              );
+              )
+                .then(getLocationHeader)
+                .then(getContainerItems);
             }
             return err;
           });
