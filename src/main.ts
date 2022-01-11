@@ -15,6 +15,7 @@ import Listbox from 'primevue/listbox';
 import Dialog from "primevue/dialog";
 import SpeedDial from "primevue/speeddial";
 import Toast from "primevue/toast";
+import ProgressBar from 'primevue/progressbar';
 // import Sidebar from "primevue/sidebar";
 
 import Tooltip from "primevue/tooltip";
@@ -42,6 +43,7 @@ app.component("Listbox", Listbox);
 app.component("Dialog", Dialog);
 app.component("SpeedDial", SpeedDial);
 app.component("Toast", Toast);
+app.component("ProgressBar", ProgressBar)
 // app.component("Sidebar", Sidebar);
 
 app.directive("tooltip", Tooltip);

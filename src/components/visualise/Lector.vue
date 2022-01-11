@@ -1,16 +1,25 @@
 <template>
   <div class="p-grid">
-    <div class="p-inputgroup p-col-6 p-offset-3">
-      <!-- list go here -->
-      <InputText
-        placeholder="The URI of the Resource to do actions on."
-        v-model="uri"
-        @keyup.enter="fetch"
-      />
-      <Button @click="fetch"> GET </Button>
+    <div class="p-col-6 p-offset-3">
+      <div class="p-inputgroup p-col-6">
+        <InputText
+          placeholder="The URI of the Resource to do actions on."
+          v-model="uri"
+          @keyup.enter="fetch"
+        />
+        <Button @click="fetch"> GET </Button>
+      </div>
+      <div class="progressbarWrapper">
+        <ProgressBar v-if="isLoading" mode="indeterminate" />
+      </div>
     </div>
     <div class="p-col-12">
-      <GraphVizzard :nodes="nodes" :links="links" class="sizing" />
+      <GraphVizzard
+        :nodes="nodes"
+        :links="links"
+        class="sizing"
+        :key="renderKey"
+      />
     </div>
   </div>
 </template>
@@ -37,20 +46,22 @@ export default defineComponent({
   name: "Lector",
   components: { GraphVizzard },
   setup() {
-    const toast = useToast();
+    const renderKey = ref(false);
     const { authFetch } = useSolidSession();
+    const toast = useToast();
+    const isLoading = ref(false);
 
     const uri = ref("");
     const isHTTP = computed(
       () => uri.value.startsWith("http://") || uri.value.startsWith("https://")
     );
 
-    
-
     const links: Ref<Link[]> = ref([]);
     const nodes: Ref<Node[]> = ref([]);
     watch(links, () => {
       nodes.value = Object.values(visitedNodes);
+      if (links.value.length == 0) renderKey.value = !renderKey.value;
+      // rerender vizzard
     });
 
     let visitedNodes: Record<string, Node> = {};
@@ -59,9 +70,17 @@ export default defineComponent({
       if (!isHTTP.value) {
         return;
       }
+      isLoading.value = true;
+      toast.add({
+        severity: "warn",
+        summary: "Hang on ...",
+        detail: "Loading the graph.",
+        life: 5000,
+      });
       visitedNodes = {};
-      const { linkage } = await traverse(uri.value);
-      links.value = linkage;
+      traverse(uri.value)
+        .then((data) => (links.value = data.linkage))
+        .finally(() => (isLoading.value = false));
     };
 
     const traverse = async (
@@ -118,10 +137,12 @@ export default defineComponent({
     };
 
     return {
+      renderKey,
       nodes,
       links,
       uri,
       fetch,
+      isLoading,
     };
   },
 });
@@ -132,7 +153,7 @@ export default defineComponent({
   margin: 5px;
 }
 .p-inputgroup {
-  width: 50%;
+  padding-bottom: 0px;
 }
 .sizing {
   height: calc(100vh - 240px);
@@ -149,5 +170,17 @@ export default defineComponent({
 }
 .border:hover {
   border: 1px solid var(--primary-color);
+}
+
+.progressbarWrapper {
+  height: 2px;
+  padding: 0px 9px 0px 9px;
+  transform: translate(0, -1px);
+}
+.p-progressbar {
+  height: 2px;
+  padding-top: 0px;
+  border-top-right-radius: 0;
+  border-top-left-radius: 0;
 }
 </style>

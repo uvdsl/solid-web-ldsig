@@ -200,15 +200,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.hello {
-  display: flex;
-  justify-content: center;
-  align-content: center;
-  width: 90vw;
-  height: 90vh;
-}
 #svgGraph {
   width: 100%;
-  min-height: 700px;
+  min-height: 100%;
 }
 </style>
