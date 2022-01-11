@@ -1,9 +1,13 @@
 <template>
   <div class="p-grid">
+    <!-- <div class="p-col-1">
+      <Button @click="back"> <i class="pi pi-arrow-left" /> </Button>
+    </div> -->
+    <!-- <div class="p-col-6 p-offset-2"> -->
     <div class="p-col-6 p-offset-3">
-      <div class="p-inputgroup p-col-6">
+      <div class="p-inputgroup">
         <InputText
-          placeholder="The URI of the Resource to do actions on."
+          placeholder="The URI of the Resource to search links for."
           v-model="uri"
           @keyup.enter="fetch"
         />
@@ -15,11 +19,17 @@
     </div>
     <div class="p-col-12">
       <GraphVizzard
+        v-if="nodes.length != 0"
         :nodes="nodes"
         :links="links"
         class="sizing"
         :key="renderKey"
       />
+    </div>
+  </div>
+  <div class="p-grid">
+    <div class="p-inputgroup p-col-6 p-offset-3">
+      <SpeedDial showIcon="pi pi-pencil" @click="openScribe" />
     </div>
   </div>
 </template>
@@ -45,7 +55,8 @@ interface Link {
 export default defineComponent({
   name: "Lector",
   components: { GraphVizzard },
-  setup() {
+  emits: ["openScribe", "back"],
+  setup(props, context) {
     const renderKey = ref(false);
     const { authFetch } = useSolidSession();
     const toast = useToast();
@@ -60,8 +71,16 @@ export default defineComponent({
     const nodes: Ref<Node[]> = ref([]);
     watch(links, () => {
       nodes.value = Object.values(visitedNodes);
-      if (links.value.length == 0) renderKey.value = !renderKey.value;
-      // rerender vizzard
+      if (links.value.length == 0) {
+        // rerender vizzard
+        renderKey.value = !renderKey.value;
+        toast.add({
+          severity: "error",
+          summary: "No links?",
+          detail: "Could not find any links.",
+          life: 5000,
+        });
+      }
     });
 
     let visitedNodes: Record<string, Node> = {};
@@ -72,7 +91,7 @@ export default defineComponent({
       }
       isLoading.value = true;
       toast.add({
-        severity: "warn",
+        severity: "info",
         summary: "Hang on ...",
         detail: "Loading the graph.",
         life: 5000,
@@ -135,7 +154,12 @@ export default defineComponent({
       const uniq = new Set(uris);
       return [...uniq.values()];
     };
-
+    const back = () => {
+      context.emit("back");
+    };
+    const openScribe = () => {
+      context.emit("openScribe");
+    };
     return {
       renderKey,
       nodes,
@@ -143,6 +167,8 @@ export default defineComponent({
       uri,
       fetch,
       isLoading,
+      openScribe,
+      back,
     };
   },
 });
@@ -182,5 +208,13 @@ export default defineComponent({
   padding-top: 0px;
   border-top-right-radius: 0;
   border-top-left-radius: 0;
+}
+
+::v-deep() {
+  .p-speeddial {
+    bottom: 0;
+    right: calc(50% - 2rem);
+    padding-bottom: 15px;
+  }
 }
 </style>

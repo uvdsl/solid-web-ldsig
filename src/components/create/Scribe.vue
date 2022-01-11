@@ -1,6 +1,10 @@
 <template>
   <div class="p-grid">
-    <div class="p-inputgroup p-col-6 p-offset-3">
+    <!-- <div class="p-col-1">
+      <Button class="p-button-outlined p-button-rounded" @click="back"> <i class="pi pi-arrow-left" /> </Button>
+    </div>
+    <div class="p-inputgroup p-col-6 p-offset-2"> -->
+       <div class="p-inputgroup p-col-6 p-offset-3">
       <!-- list go here -->
       <InputText
         placeholder="The URI of the Resource to do actions on."
@@ -49,7 +53,8 @@ import KeyDialog from "@/components/create/KeyDialog.vue";
 export default defineComponent({
   name: "Scribe",
   components: { KeyDialog },
-  setup() {
+  emits: ["back"],
+  setup(props, context) {
     const toast = useToast();
     const { authFetch, sessionInfo } = useSolidSession();
     const { webId } = toRefs(sessionInfo);
@@ -74,7 +79,6 @@ export default defineComponent({
 
     // content of the information resource
     const content = ref("");
-
 
     // get content of information resource
     const fetch = async () => {
@@ -165,7 +169,7 @@ export default defineComponent({
     // Speeddial
     const speedDialActions = [
       {
-        label: "Save",
+        label: "Save Resource",
         icon: "pi pi-save",
         tooltipOptions: "left",
         command: async () => {
@@ -203,7 +207,7 @@ export default defineComponent({
       },
       {
         label: "Check Syntax",
-        icon: "pi pi-question",
+        icon: "pi pi-code",
         command: () => {
           parseToN3(content.value, uri.value)
             .catch((err) => {
@@ -260,8 +264,8 @@ export default defineComponent({
       //   },
       // },
       {
-        label: "Delete",
-        icon: "pi pi-times",
+        label: "Delete Resource",
+        icon: "pi pi-trash",
         command: () => {
           if (!isHTTP.value) {
             toast.add({
@@ -291,10 +295,21 @@ export default defineComponent({
             );
         },
       },
+      {
+        label: "Back to Graph View",
+        icon: "pi pi-arrow-left",
+        command: () => {
+          back();
+        },
+      },
     ];
 
     const requestCryptoKey = () => {
       displayKeyDialog.value = true;
+    };
+
+    const back = () => {
+      context.emit("back");
     };
     return {
       resumeSaveAction,
@@ -303,6 +318,7 @@ export default defineComponent({
       fetch,
       content,
       speedDialActions,
+      back,
     };
   },
 });
@@ -310,6 +326,10 @@ export default defineComponent({
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
+#back {
+  position: absolute;
+  margin: 2px;
+}
 .p-grid {
   margin: 5px;
 }

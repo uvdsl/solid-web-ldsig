@@ -43,7 +43,7 @@ app.component("Listbox", Listbox);
 app.component("Dialog", Dialog);
 app.component("SpeedDial", SpeedDial);
 app.component("Toast", Toast);
-app.component("ProgressBar", ProgressBar)
+app.component("ProgressBar", ProgressBar);
 // app.component("Sidebar", Sidebar);
 
 app.directive("tooltip", Tooltip);
