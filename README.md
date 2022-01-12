@@ -4,6 +4,9 @@ Creating resources with Linkded Data Signatures on Solid.
 
 ![screenshot](https://github.com/uvdsl/solid-web-ldsig/blob/main/img/preview.png?raw=true)
 
+## Requirement
+The app needs to be served in an HTTPS context. Otherwise, `crypto.subtle` is not accessible (which is by design).
+
 ## Build and run using Docker
 ```
 docker build -t solid-web-ldsig:latest .
