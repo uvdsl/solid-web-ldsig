@@ -19,7 +19,7 @@
           v-model="idp"
           @keyup.enter="login(idp)"
         />
-        <Button> > </Button>
+        <Button @click="login(idp)"> > </Button>
       </div>
         <Button
         class="idp"
