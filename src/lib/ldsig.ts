@@ -1,9 +1,9 @@
 import { RDF, SEC } from "./namespaces";
-import { NamedNode, Quad, Store, Writer } from "n3";
+import { BlankNode, NamedNode, OTerm, Quad, Quad_Object, Store, Term, Writer } from "n3";
 
 import { getResource, parseToN3 } from "./solidRequests";
 import { canonRDF, hashString, signString, verifyString } from "./canon";
-import { getListItems } from "./n3Extensions";
+import { canonicaliseTerm, getListItems } from "./n3Extensions";
 import { importKey } from "./crypt";
 
 export const createLDSignature = async (uri: string, rdf: string, privateKey: { uri: string; label: string; pubKeyLoc: string, jwk: string }, creator: string, dateTime: Date) => {
@@ -35,20 +35,22 @@ _:signature a sec:Signature ; # does not exist but should
 
   // consolidate RDF
   const { store: sig_store, prefixes: sig_prefixes } = await parseToN3(rdf_sig, "");
-  const rei_store = await reifyTriples(base_store);
+  // const ref_store = await reifyTriples(base_store); // reification
+  const quotedTriples = await quoteTriples(base_store) // rdf-star
   Object.assign(base_prefixes, sig_prefixes);
 
   const writer = new Writer({ format: "turtle*", prefixes: base_prefixes })
   writer.addQuads(base_store.getQuads(null, null, null, null))
   writer.addQuads(sig_store.getQuads(null, null, null, null))
   // link RDF
-  const new_blanknodes = rei_store.getSubjects(null, null, null) // there should only be blank nodes in this
-  writer.addQuad(
-    new NamedNode('#signature'),
-    new NamedNode(SEC('proofOf')),
-    writer.list(new_blanknodes)
-  );
-  writer.addQuads(rei_store.getQuads(null, null, null, null));
+  // const new_blanknodes = ref_store.getSubjects(null, null, null) // reification
+  // writer.addQuad(// reification
+  // new BlankNode('signature'),// reification
+  // new NamedNode(SEC('proofOf')), // reification
+  // writer.list(new_blanknodes) // reification
+  // ); // reification
+  writer.addQuads(quotedTriples.map(quoted => new Quad(new BlankNode('signature'), new NamedNode(SEC('proofOf')), quoted))); // rdf-star
+  // writer.addQuads(ref_store.getQuads(null, null, null, null)); // refication
 
   // write it
   let message = "";
@@ -57,10 +59,20 @@ _:signature a sec:Signature ; # does not exist but should
 }
 // https://raw.githubusercontent.com/w3c-ccg/security-vocab/main/contexts/security-v3-unstable.jsonld
 
+const quoteTriples = async (store: Store) => {
+  const quotedTriples = store.getQuads(null, null, null, null).map(quad =>
+  (
+    {
+      id: `<< ${canonicaliseTerm(quad.subject)} ${canonicaliseTerm(quad.predicate)} ${canonicaliseTerm(quad.object)} >>`,
+      value: `<< ${canonicaliseTerm(quad.subject)} ${canonicaliseTerm(quad.predicate)} ${canonicaliseTerm(quad.object)} >>`
+    } as Quad_Object
+  )
+  );
+  return quotedTriples;
+}
+
 const reifyTriples = async (store: Store) => {
-  const ref_store = new Store(store.getQuads(null, null, null, null).map(quad =>
-  // either reification
-  {
+  const ref_store = new Store(store.getQuads(null, null, null, null).map(quad => {
     const bn = store.createBlankNode();
     return [
       new Quad(bn, new NamedNode(RDF("type")), new NamedNode(RDF("Statement"))),
@@ -70,10 +82,10 @@ const reifyTriples = async (store: Store) => {
     ]
   }
   ).flat());
-  // or RDF-star
-  // ... simply to text and enquote
   return ref_store;
 }
+
+
 
 
 export const verifyLDSignature = async (store: Store, fetch?: (url: RequestInfo, init?: RequestInit) => Promise<Response>) => {
@@ -87,19 +99,24 @@ export const verifyLDSignature = async (store: Store, fetch?: (url: RequestInfo,
     .then(jwk => importKey(JSON.parse(jwk)));
 
   // check if reified statements are asserted  
-  const reified = getListItems(store, store.getObjects(sig, SEC('proofOf'), null)[0]).map(stmt => {
-    const s = store.getObjects(stmt, RDF('subject'), null)[0];
-    const p = store.getObjects(stmt, RDF('predicate'), null)[0];
-    const o = store.getObjects(stmt, RDF('object'), null)[0];
-    return new Quad(s, p, o)
-  });
-  const reifiedAsserted = reified.map(quad => store.has(quad));
-  const reifiedOK = !reifiedAsserted.includes(false) && reifiedAsserted.length != 0;
+  // const ref = getListItems(store, store.getObjects(sig, SEC('proofOf'), null)[0]).map(stmt => {
+  //   const s = store.getObjects(stmt, RDF('subject'), null)[0];
+  //   const p = store.getObjects(stmt, RDF('predicate'), null)[0];
+  //   const o = store.getObjects(stmt, RDF('object'), null)[0];
+  //   return new Quad(s, p, o)
+  // });
+ 
+    // check if quoted statements are asserted  
+  const ref = store.getObjects(sig, SEC('proofOf'), null).map(star => star.toJSON() as Quad)
+
+  const areAsserted = ref.map(quad => store.has(quad));
+  const assertedOK = !areAsserted.includes(false) && areAsserted.length != 0;
+
   // check if signature checks out
   const sigVal = store.getObjects(sig, SEC('signatureValue'), null)[0].value;
-  const reiStore = new Store(reified);
-  const canon = canonRDF(reiStore);
+  const refStore = new Store(ref);
+  const canon = canonRDF(refStore);
   const signatureOK = await verifyString(canon, sigVal, await pubKey);
 
-  return reifiedOK && signatureOK;
+  return assertedOK && signatureOK;
 }

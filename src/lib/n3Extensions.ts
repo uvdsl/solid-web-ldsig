@@ -18,7 +18,7 @@ import { RDF } from "./namespaces";
  * @param term n3 term
  * @return string
  */
-function _canonicaliseTerm(term: Term) {
+export function canonicaliseTerm(term: Term) {
   switch (term.termType) {
     case "NamedNode":
       return `<${term.value}>`;
@@ -90,7 +90,7 @@ const _serialiseList = (terms: Quad_Object[], listMapping: Record<string, [Quad_
       if (Object.keys(listMapping).includes(term.value)) { // list
         const listTerms = listMapping[term.value][0];
         console.log(listMapping)
-        const serialisation = ` ( ${_serialiseList(listTerms, listMapping, blankNodes, n3Store, n3Writer).map(_canonicaliseTerm).join(" ")} ) `;
+        const serialisation = ` ( ${_serialiseList(listTerms, listMapping, blankNodes, n3Store, n3Writer).map(canonicaliseTerm).join(" ")} ) `;
         terms[i] = { id: serialisation, value: serialisation } as Quad_Object
       } else { // blank node
         if (blankNodes.includes(term)) {
@@ -109,7 +109,7 @@ const _serialiseBlankNode = (bn: BlankNode, blankNodes: BlankNode[], listMapping
     if (obj.termType === "BlankNode") {
       if (Object.keys(listMapping).includes(obj.value)) { // list
         const listTerms = listMapping[obj.value][0];
-        const serialisation = ` ( ${_serialiseList(listTerms, listMapping, blankNodes, n3Store, n3Writer).map(_canonicaliseTerm).join(" ")} ) `;
+        const serialisation = ` ( ${_serialiseList(listTerms, listMapping, blankNodes, n3Store, n3Writer).map(canonicaliseTerm).join(" ")} ) `;
         obj = { id: serialisation, value: serialisation } as Quad_Object
       } else  // blank node
         if (blankNodes.includes(bn)) {

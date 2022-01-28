@@ -63,7 +63,7 @@ export async function parseToN3(
   baseIRI: string
 ): Promise<ParsedN3> {
   const store = new Store();
-  const parser = new Parser({ baseIRI: _stripFragment(baseIRI), blankNodePrefix: ''}); // { blankNodePrefix: 'any' } does not have the effect I thought
+  const parser = new Parser({format: 'turtle*', baseIRI: _stripFragment(baseIRI), blankNodePrefix: ''}); // { blankNodePrefix: 'any' } does not have the effect I thought
   return new Promise((resolve, reject) => {
     // parser.parse is actually async but types don't tell you that.
     parser.parse(text, (error: Error, quad: Quad, prefixes: Prefixes) => {
