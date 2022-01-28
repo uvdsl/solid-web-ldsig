@@ -7,6 +7,9 @@ Creating resources with Linkded Data Signatures on Solid.
 ## Requirement
 The app needs to be served in an HTTPS context (or from localhost). Otherwise, `crypto.subtle` is not accessible (which is by design).
 
+## Gotcha!
+The current parser of [N3.js](https://github.com/rdfjs/N3.js) does not like RDF lists of RDF-star triples (see [here](https://github.com/rdfjs/N3.js/issues/256#issuecomment-1024447424)).
+
 ## Build and run using Docker
 ```
 docker build -t solid-web-ldsig:latest .
