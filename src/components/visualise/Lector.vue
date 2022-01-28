@@ -19,11 +19,10 @@
     </div>
     <div class="p-col-12">
       <GraphVizzard
-        v-if="nodes.length != 0"
+        v-if="nodes.length != 0 && !isLoading"
         :nodes="nodes"
         :links="links"
         class="sizing"
-        :key="renderKey"
       />
     </div>
   </div>
@@ -72,8 +71,7 @@ export default defineComponent({
     watch(links, () => {
       nodes.value = Object.values(visitedNodes);
       if (links.value.length == 0) {
-        // rerender vizzard
-        renderKey.value = !renderKey.value;
+        nodes.value = [];
         toast.add({
           severity: "error",
           summary: "No links?",
