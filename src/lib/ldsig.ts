@@ -16,11 +16,12 @@ export const createLDSignature = async (uri: string, rdf: string, privateKey: { 
   const signature = await signString(canonicalRDF, key);
   const rdf_sig = `
   @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+  @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
   @prefix dc:  <http://purl.org/dc/terms/> .
   @prefix xsd: <http://www.w3.org/2001/XMLSchema#> . 
   @prefix sec: <https://w3id.org/security#> .
 
-<#signature> a sec:Signature ; # does not exist but should
+_:signature a sec:Signature ; # does not exist but should
     dc:created "${dateTime.toISOString()}"^^xsd:dateTime ;
     dc:creator <${creator}> ;
     sec:publicKey <${pubKeyLoc}> ;
