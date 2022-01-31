@@ -23,12 +23,13 @@
         :nodes="nodes"
         :links="links"
         class="sizing"
+        @selected="openScribe"
       />
     </div>
   </div>
   <div class="p-grid">
     <div class="p-inputgroup p-col-6 p-offset-3">
-      <SpeedDial showIcon="pi pi-pencil" @click="openScribe" />
+      <SpeedDial showIcon="pi pi-pencil" @click="openScribe('')" />
     </div>
   </div>
 </template>
@@ -54,14 +55,14 @@ interface Link {
 export default defineComponent({
   name: "Lector",
   components: { GraphVizzard },
-  emits: ["openScribe", "back"],
+  props: { inititalURI: String },
+  emits: ["openScribe", "back", "saveURI"],
   setup(props, context) {
-    const renderKey = ref(false);
     const { authFetch } = useSolidSession();
     const toast = useToast();
     const isLoading = ref(false);
 
-    const uri = ref("");
+    const uri = ref(props.inititalURI as string);
     const isHTTP = computed(
       () => uri.value.startsWith("http://") || uri.value.startsWith("https://")
     );
@@ -88,6 +89,7 @@ export default defineComponent({
         return;
       }
       isLoading.value = true;
+      context.emit("saveURI", uri.value);
       toast.add({
         severity: "info",
         summary: "Hang on ...",
@@ -155,11 +157,10 @@ export default defineComponent({
     const back = () => {
       context.emit("back");
     };
-    const openScribe = () => {
-      context.emit("openScribe");
+    const openScribe = (selectedURI: string) => {
+      context.emit("openScribe", selectedURI);
     };
     return {
-      renderKey,
       nodes,
       links,
       uri,

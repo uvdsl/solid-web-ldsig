@@ -4,14 +4,19 @@
       <Button class="p-button-outlined p-button-rounded" @click="back"> <i class="pi pi-arrow-left" /> </Button>
     </div>
     <div class="p-inputgroup p-col-6 p-offset-2"> -->
-       <div class="p-inputgroup p-col-6 p-offset-3">
-      <!-- list go here -->
-      <InputText
-        placeholder="The URI of the Resource to do actions on."
-        v-model="uri"
-        @keyup.enter="fetch"
-      />
-      <Button @click="fetch"> GET </Button>
+    <div class="p-col-6 p-offset-3">
+      <div class="p-inputgroup">
+        <!-- list go here -->
+        <InputText
+          placeholder="The URI of the Resource to do actions on."
+          v-model="uri"
+          @keyup.enter="fetch"
+        />
+        <Button @click="fetch"> GET </Button>
+      </div>
+      <div class="progressbarWrapper">
+        <ProgressBar v-if="isLoading" mode="indeterminate" />
+      </div>
     </div>
     <div class="p-col-6 p-offset-3">
       <Textarea v-model="content" class="sizing" />
@@ -53,6 +58,7 @@ import KeyDialog from "@/components/create/KeyDialog.vue";
 export default defineComponent({
   name: "Scribe",
   components: { KeyDialog },
+  props: { inititalURI: String },
   emits: ["back"],
   setup(props, context) {
     const toast = useToast();
@@ -62,8 +68,10 @@ export default defineComponent({
     // const n3Store = ref();
     // const n3Prefixes = ref();
 
+    const isLoading = ref(false);
+
     // uri of the information resource
-    const uri = ref("");
+    const uri = ref(props.inititalURI as string);
     const isHTTP = computed(
       () => uri.value.startsWith("http://") || uri.value.startsWith("https://")
     );
@@ -85,6 +93,7 @@ export default defineComponent({
       if (!isHTTP.value) {
         return;
       }
+      isLoading.value = true;
       const txt = await getResource(uri.value, authFetch.value)
         .catch((err) => {
           toast.add({
@@ -125,8 +134,12 @@ export default defineComponent({
           });
           //   throw new Error(err);
         })
-        .finally(() => (content.value = txt));
+        .finally(() => {
+          content.value = txt;
+          isLoading.value = false;
+        });
     };
+    if (uri.value !== "") fetch();
 
     const resumeSaveAction = async (key: {
       uri: string;
@@ -319,6 +332,7 @@ export default defineComponent({
       content,
       speedDialActions,
       back,
+      isLoading
     };
   },
 });
@@ -333,16 +347,6 @@ export default defineComponent({
 .p-grid {
   margin: 5px;
 }
-.p-inputgroup {
-  width: 50%;
-}
-// TextArea {
-// height: 100%;
-// width: 100%;
-// max-height: 100%;
-// max-width: 100%;
-//   margin-bottom: 10px;
-// }
 ::v-deep() {
   .p-speeddial {
     bottom: 0;
@@ -366,4 +370,16 @@ export default defineComponent({
 .border:hover {
   border: 1px solid var(--primary-color);
 }
+.progressbarWrapper {
+  height: 2px;
+  padding: 0px 9px 0px 9px;
+  transform: translate(0, -1px);
+}
+.p-progressbar {
+  height: 2px;
+  padding-top: 0px;
+  border-top-right-radius: 0;
+  border-top-left-radius: 0;
+}
+
 </style>

@@ -11,6 +11,7 @@ import * as d3 from "d3";
 export default {
   label: "GraphVizzard",
   components: {},
+    emits: ["selected"],
   props: {
     links: Array,
     nodes: Array,
@@ -109,7 +110,8 @@ export default {
       // GRAPHICS
       this.g_node_selection = this.g_node_selection.data(this.nodes).join(
         (enter) => {
-          const selection = enter.append("g").call(this.dragger);
+          const selection = enter.append("g").attr("cursor", "pointer")
+              .on("click", this.select).call(this.dragger);
           const width = 500;
           const height = 45;
           const border = 5;
@@ -194,6 +196,10 @@ export default {
         return "darkred";
       }
       return "darkgreen";
+    },
+    
+    select(d) {
+      this.$emit("selected", d.label);
     },
   },
 };

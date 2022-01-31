@@ -1,8 +1,11 @@
 <template>
-  <Lector v-if="!selected" @openScribe="select(1)" @back="unselect" />
-  <Scribe v-if="selected" @back="unselect" />
+  <Lector v-if="!selected" @openScribe="select" @back="unselect" @saveURI="saveLectorURI" :inititalURI="lectorURI"/>
+  <Scribe v-if="selected" @back="unselect" :inititalURI="scribeURI"/>
 
-  <Toast position="bottom-right" />
+    <Toast
+    position="bottom-right"
+    :breakpoints="{ '420px': { width: '100%', right: '0', left: '0' } }"
+  /> 
 </template>
 
 <script lang="ts">
@@ -15,16 +18,26 @@ export default defineComponent({
   components: { Scribe, Lector },
   setup() {
     const selected = ref(0);
-    const select = (i: number) => {
-      selected.value = i;
+    const scribeURI = ref("");
+    const lectorURI = ref("");
+    const select = (uri: string) => {
+      console.log(uri)
+      scribeURI.value = uri;
+      selected.value = 1
     };
     const unselect = () => {
-      select(0);
+      selected.value = 0
     };
+    const saveLectorURI = (uri:string) => {
+      lectorURI.value = uri;
+    }
     return {
       select,
       selected,
       unselect,
+      scribeURI,
+      lectorURI,
+      saveLectorURI
     };
   },
 });
