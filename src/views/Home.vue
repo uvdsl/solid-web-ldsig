@@ -1,11 +1,17 @@
 <template>
-  <Lector v-if="!selected" @openScribe="select" @back="unselect" @saveURI="saveLectorURI" :inititalURI="lectorURI"/>
-  <Scribe v-if="selected" @back="unselect" :inititalURI="scribeURI"/>
+  <Lector
+    v-if="!selected"
+    @openScribe="select"
+    @back="unselect"
+    @saveURI="saveLectorURI"
+    :inititalURI="lectorURI"
+  />
+  <Scribe v-if="selected" @back="unselect" :inititalURI="scribeURI" />
 
-    <Toast
+  <Toast
     position="bottom-right"
     :breakpoints="{ '420px': { width: '100%', right: '0', left: '0' } }"
-  /> 
+  />
 </template>
 
 <script lang="ts">
@@ -21,30 +27,27 @@ export default defineComponent({
     const scribeURI = ref("");
     const lectorURI = ref("");
     const select = (uri: string) => {
-      console.log(uri)
+      console.log(uri);
       scribeURI.value = uri;
-      selected.value = 1
+      selected.value = 1;
     };
     const unselect = () => {
-      selected.value = 0
+      selected.value = 0;
     };
-    const saveLectorURI = (uri:string) => {
+    const saveLectorURI = (uri: string) => {
       lectorURI.value = uri;
-    }
+    };
     return {
       select,
       selected,
       unselect,
       scribeURI,
       lectorURI,
-      saveLectorURI
+      saveLectorURI,
     };
   },
 });
 </script>
 
 <style lang="scss" scoped>
-.p-card {
-  margin: 5px;
-}
 </style>

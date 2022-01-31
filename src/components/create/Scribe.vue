@@ -1,10 +1,6 @@
 <template>
-  <div class="p-grid">
-    <!-- <div class="p-col-1">
-      <Button class="p-button-outlined p-button-rounded" @click="back"> <i class="pi pi-arrow-left" /> </Button>
-    </div>
-    <div class="p-inputgroup p-col-6 p-offset-2"> -->
-    <div class="p-col-6 p-offset-3">
+  <div class="grid">
+    <div class="col md:col-6 md:col-offset-3">
       <div class="p-inputgroup">
         <!-- list go here -->
         <InputText
@@ -18,12 +14,14 @@
         <ProgressBar v-if="isLoading" mode="indeterminate" />
       </div>
     </div>
-    <div class="p-col-6 p-offset-3">
+  </div>
+  <div class="grid">
+    <div class="col md:col-6 md:col-offset-3">
       <Textarea v-model="content" class="sizing" />
     </div>
   </div>
-  <div class="p-grid">
-    <div class="p-inputgroup p-col-6 p-offset-3">
+  <div class="grid">
+    <div class="col md:col-6 md:col-offset-3">
       <SpeedDial
         :model="speedDialActions"
         type="semi-circle"
@@ -297,7 +295,7 @@ export default defineComponent({
   position: absolute;
   margin: 2px;
 }
-.p-grid {
+.grid {
   margin: 5px;
 }
 ::v-deep() {

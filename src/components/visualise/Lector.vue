@@ -1,10 +1,6 @@
 <template>
-  <div class="p-grid">
-    <!-- <div class="p-col-1">
-      <Button @click="back"> <i class="pi pi-arrow-left" /> </Button>
-    </div> -->
-    <!-- <div class="p-col-6 p-offset-2"> -->
-    <div class="p-col-6 p-offset-3">
+  <div class="grid">
+    <div class="col md:col-6 md:col-offset-3">
       <div class="p-inputgroup">
         <InputText
           placeholder="The URI of the Resource to search links for."
@@ -17,18 +13,20 @@
         <ProgressBar v-if="isLoading" mode="indeterminate" />
       </div>
     </div>
-    <div class="p-col-12">
-      <GraphVizzard
-        v-if="nodes.length != 0 && !isLoading"
-        :nodes="nodes"
-        :links="links"
-        class="sizing"
-        @selected="openScribe"
-      />
+    </div>
+    <div class="grid">
+      <div class="col">
+        <GraphVizzard
+          v-if="nodes.length != 0 && !isLoading"
+          :nodes="nodes"
+          :links="links"
+          class="sizing"
+          @selected="openScribe"
+        />
     </div>
   </div>
-  <div class="p-grid">
-    <div class="p-inputgroup p-col-6 p-offset-3">
+  <div class="grid">
+    <div class="col md:col-6 md:col-offset-3">
       <SpeedDial showIcon="pi pi-pencil" @click="openScribe('')" />
     </div>
   </div>
@@ -174,7 +172,7 @@ export default defineComponent({
 </script>
 
 <style scoped lang="scss">
-.p-grid {
+.grid {
   margin: 5px;
 }
 .p-inputgroup {

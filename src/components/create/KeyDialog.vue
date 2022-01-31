@@ -11,7 +11,6 @@
     </template>
   </Dialog>
 
-  <Toast position="bottom-right" />
 </template>
 
 <script lang="ts">
