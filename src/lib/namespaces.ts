@@ -12,7 +12,7 @@ function Namespace(namespace: string) {
 
 // Namespaces as functions where their parameter is the RDF thing identifier => concat, e.g. FOAF("knows") resovles to "http://xmlns.com/foaf/0.1/knows"
 export const FOAF = Namespace("http://xmlns.com/foaf/0.1/");
-export const DCT = Namespace("http://purl.org/dc/terms/");
+export const DC = Namespace("http://purl.org/dc/terms/");
 export const RDF = Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#");
 export const RDFS = Namespace("http://www.w3.org/2000/01/rdf-schema#");
 export const WDT = Namespace("http://www.wikidata.org/prop/direct/");
@@ -28,3 +28,4 @@ export const LDCV = Namespace(
 export const WILD = Namespace("http://purl.org/wild/vocab#");
 export const VCARD = Namespace("http://www.w3.org/2006/vcard/ns#");
 export const SEC = Namespace("https://w3id.org/security#");
+export const JWK = Namespace("https://placeholder.org/jwk#")

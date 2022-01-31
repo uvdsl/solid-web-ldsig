@@ -5,35 +5,38 @@
       @keyup.enter="createKeyPair(keyName)"
       placeholder="Create a new keypair."
     />
-    <Button @click="createKeyPair(keyName)"> <i class="pi pi-key" /> </Button>
+    <Button @click="createKeyPair(keyName)">
+      <i class="pi pi-plus" v-bind:class="{ 'pi-spin': isLoading }" />
+    </Button>
   </div>
   <Listbox
-    v-if="!loading"
+    v-if="!isLoading"
     v-model="selectedKey"
     :options="keys"
     optionLabel="label"
     @click="emitSelectedJWK"
   />
   <div v-else class="p-col-6 p-offset-3" style="margin-top: 10px">
-    <i class="pi pi-spin pi-key" />
     <span> Loading ...</span>
   </div>
 </template>
 
 <script lang="ts">
 import { useSolidSession } from "@/composables/useSolidSession";
-import { LDP } from "@/lib/namespaces";
+import { JWK, LDP, SEC } from "@/lib/namespaces";
 import {
   createContainer,
   createResource,
   getLocationHeader,
   getResource,
   parseToN3,
+  putResource,
 } from "@/lib/solidRequests";
 import { createECDSAKeyPair } from "@/lib/crypt";
-import { Store } from "n3";
+import { Store, Term } from "n3";
 import { useToast } from "primevue/usetoast";
 import { computed, defineComponent, ref, Ref, toRefs, watch } from "vue";
+import { addSuffix, signLD, createRDFofKey } from "@/lib/ldsig";
 
 export default defineComponent({
   name: "KeyManager",
@@ -43,7 +46,7 @@ export default defineComponent({
     const toast = useToast();
     const { authFetch, sessionInfo } = useSolidSession();
     const { webId } = toRefs(sessionInfo);
-    const loading = ref(false);
+    const isLoading = ref(false);
     const baseURI = computed(() => {
       return webId?.value ? webId.value.split("/profile")[0] : undefined;
     });
@@ -59,19 +62,25 @@ export default defineComponent({
       );
       return jwkQuads
         ?.map((quad) => {
+          const uri = quad.subject.id
+          const label = privateKeysRDF.value?.getObjects(quad.subject,"http://www.w3.org/2000/01/rdf-schema#label",null)[0]?.value
+          const pubKeyLoc = privateKeysRDF.value?.getObjects(quad.subject,"https://w3id.org/security#publicKey",null)[0]?.id
+          const jwkTerm = privateKeysRDF.value?.getObjects(quad.subject,SEC('privateKeyJwk'), null)[0] as Term;
+          const jwk = {
+            alg: privateKeysRDF.value?.getObjects(jwkTerm,JWK('alg'), null)[0].value,
+            crv: privateKeysRDF.value?.getObjects(jwkTerm,JWK('crv'), null)[0].value,
+            d: privateKeysRDF.value?.getObjects(jwkTerm,JWK('d'), null)[0].value,
+            ext: privateKeysRDF.value?.getObjects(jwkTerm,JWK('ext'), null)[0].value === "true",
+            kty: privateKeysRDF.value?.getObjects(jwkTerm,JWK('kty'), null)[0].value,
+            x: privateKeysRDF.value?.getObjects(jwkTerm,JWK('x'), null)[0].value,
+            y: privateKeysRDF.value?.getObjects(jwkTerm,JWK('y'), null)[0].value,
+            key_ops: privateKeysRDF.value?.getObjects(jwkTerm,JWK('key_ops'), null).map(e => e.value)
+          }
           return {
-            uri: quad.subject.id,
-            label: privateKeysRDF.value?.getObjects(
-              quad.subject,
-              "http://www.w3.org/2000/01/rdf-schema#label",
-              null
-            )[0]?.value,
-            pubKeyLoc: privateKeysRDF.value?.getObjects(
-              quad.subject,
-              "https://w3id.org/security#publicKey",
-              null
-            )[0]?.id,
-            jwk: quad.object.value,
+            uri,
+            label,
+            pubKeyLoc,
+            jwk
           };
         })
         .filter((key) => key.label);
@@ -106,7 +115,7 @@ export default defineComponent({
       async () => {
         privateKeysRDF.value = undefined;
         if (baseURI.value) {
-          loading.value = true;
+          isLoading.value = true;
           const publicKeyFolder = `${baseURI.value}/public/keys/`;
           const pubFolderPromise = getResource(publicKeyFolder).catch(
             //   publicKeysRDF.value =  await getContainerItems(publicKeyFolder).catch(
@@ -150,25 +159,11 @@ export default defineComponent({
             }
             return err;
           });
-          pubFolderPromise.then(() => (loading.value = false));
+          pubFolderPromise.then(() => (isLoading.value = false));
         }
       },
       { immediate: true }
     );
-
-    // embed keys in RDF
-    const createRDFofKey = (label: string, jwk: string, pubKeyLoc?: string) => {
-      let keyRDF = ` <>  <http://www.w3.org/2000/01/rdf-schema#label> "${label}" ;
-      <https://w3id.org/security#controller> <${webId?.value}> ;
-      <https://w3id.org/security#${
-        pubKeyLoc ? "private" : "public"
-      }KeyJwk> """${jwk}"""^^<http://www.w3.org/1999/02/22-rdf-syntax-ns#JSON> `;
-      keyRDF += pubKeyLoc
-        ? `;
-      <https://w3id.org/security#publicKey> <${pubKeyLoc}> .`
-        : `.`;
-      return keyRDF;
-    };
 
     const createKeyPair = async (label: string) => {
       if (
@@ -184,34 +179,52 @@ export default defineComponent({
         });
         return;
       }
+      isLoading.value = true;
       // generate new keypair
       let keyPair = await createECDSAKeyPair();
       let publicKey = keyPair.publicKey as CryptoKey;
       let privateKey = keyPair.privateKey as CryptoKey;
 
       // export the keypair as jwk
-      const pubKeyJWK = await crypto.subtle
-        .exportKey("jwk", publicKey)
-        .then(JSON.stringify);
-      const privKeyJWK = await crypto.subtle
-        .exportKey("jwk", privateKey)
-        .then(JSON.stringify);
+      const pubKeyJWK = await crypto.subtle.exportKey("jwk", publicKey);
+      const privKeyJWK = await crypto.subtle.exportKey("jwk", privateKey);
 
       // store the keys in solid pod
       const publicKeyFolder = `${baseURI.value}/public/keys/`;
+      let publicKeyContent = createRDFofKey(label, webId?.value as string, pubKeyJWK);
       const pubKeyCREATE = createResource(
         publicKeyFolder,
-        createRDFofKey(label, pubKeyJWK),
+        publicKeyContent,
         authFetch.value
       );
-      const pubKeyLocation = await pubKeyCREATE.then(getLocationHeader);
+      let pubKeyLocation = await pubKeyCREATE.then(getLocationHeader);
+
+      const { rdf_string, hash, signature } = await signLD(
+        pubKeyLocation, // base uri == "here"
+        publicKeyContent,
+        privKeyJWK,
+        "#key", // keyLoc = "here"#key 
+        webId?.value as string,
+        new Date()
+      );
+
+      pubKeyLocation = addSuffix(pubKeyLocation, signature);
+      publicKeyContent = rdf_string;
+      const pubKeyPUT = putResource(
+        pubKeyLocation,
+        publicKeyContent,
+        authFetch.value
+      );
+
       const privateKeyFolder = `${baseURI.value}/private/keys/`;
       const privKeyCREATE = createResource(
         privateKeyFolder,
-        createRDFofKey(label, privKeyJWK, pubKeyLocation),
+        createRDFofKey(label, webId?.value as string, privKeyJWK, `${pubKeyLocation}#key`),
         authFetch.value
       );
-      Promise.all([pubKeyCREATE, privKeyCREATE])
+
+      // finshing moves, get the updated list of private keys.
+      Promise.all([pubKeyCREATE, pubKeyPUT, privKeyCREATE])
         .then(() => getContainerItems(privateKeyFolder))
         .then((rdf) => (privateKeysRDF.value = rdf))
         .then(() =>
@@ -229,7 +242,8 @@ export default defineComponent({
             detail: err,
             life: 5000,
           })
-        );
+        )
+        .finally(() => (isLoading.value = false));
     };
 
     const emitSelectedJWK = () => {
@@ -237,7 +251,7 @@ export default defineComponent({
     };
 
     return {
-      loading,
+      isLoading,
       createKeyPair,
       keyName,
       selectedKey,

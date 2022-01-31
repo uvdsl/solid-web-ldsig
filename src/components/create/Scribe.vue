@@ -51,7 +51,7 @@ import {
   getResource,
   parseToN3,
 } from "@/lib/solidRequests";
-import { createLDSignature, verifyLDSignature } from "@/lib/ldsig";
+import { addSuffix, signLD, verifyLDSignature } from "@/lib/ldsig";
 
 import KeyDialog from "@/components/create/KeyDialog.vue";
 
@@ -75,15 +75,6 @@ export default defineComponent({
     const isHTTP = computed(
       () => uri.value.startsWith("http://") || uri.value.startsWith("https://")
     );
-    const addSuffix = (uri: string, suffix: string) => {
-      if (uri.includes("__0x")) {
-        const end_index = uri.lastIndexOf("__0x");
-        uri = uri.substring(0, end_index);
-        console.log(uri);
-      }
-      uri += "__0x" + suffix;
-      return uri;
-    };
 
     // content of the information resource
     const content = ref("");
@@ -102,6 +93,7 @@ export default defineComponent({
             detail: err,
             life: 5000,
           });
+          isLoading.value = false;
           throw new Error(err);
         })
         .then((resp) => resp.text());
@@ -145,14 +137,15 @@ export default defineComponent({
       uri: string;
       label: string;
       pubKeyLoc: string;
-      jwk: string;
+      jwk: any; // JsonWebKey
     }) => {
       displayKeyDialog.value = false;
 
-      const { rdf_string, hash, signature } = await createLDSignature(
+      const { rdf_string, hash, signature } = await signLD(
         uri.value,
         content.value,
-        key,
+        key.jwk,
+        key.pubKeyLoc,
         webId?.value as string,
         new Date()
       );
@@ -160,23 +153,6 @@ export default defineComponent({
       // console.log("Signature:", signature);
       uri.value = addSuffix(uri.value, signature);
       content.value = rdf_string;
-      putResource(uri.value, content.value, authFetch.value)
-        .then(() =>
-          toast.add({
-            severity: "success",
-            summary: "Successful Save!",
-            detail: "The resource has been put at the URI.",
-            life: 5000,
-          })
-        )
-        .catch((err) =>
-          toast.add({
-            severity: "error",
-            summary: "Error on save!",
-            detail: err,
-            life: 5000,
-          })
-        );
     };
 
     // Speeddial
@@ -184,7 +160,38 @@ export default defineComponent({
       {
         label: "Save Resource",
         icon: "pi pi-save",
-        tooltipOptions: "left",
+        command: async () => {
+          if (!isHTTP.value) {
+            toast.add({
+              severity: "error",
+              summary: "Missing URI to save at!",
+              detail: "Specify a HTTP-URI in the search bar.",
+              life: 5000,
+            });
+            return;
+          }
+          putResource(uri.value, content.value, authFetch.value)
+            .then(() =>
+              toast.add({
+                severity: "success",
+                summary: "Successful Save!",
+                detail: "The resource has been put at the URI.",
+                life: 5000,
+              })
+            )
+            .catch((err) =>
+              toast.add({
+                severity: "error",
+                summary: "Error on save!",
+                detail: err,
+                life: 5000,
+              })
+            );
+        },
+      },
+      {
+        label: "Create Signature",
+        icon: "pi pi-key",
         command: async () => {
           if (!isHTTP.value) {
             toast.add({
@@ -196,26 +203,6 @@ export default defineComponent({
             return;
           }
           requestCryptoKey();
-          // const hashHex = await hashRDF(content.value);
-          // uri.value = addSuffix(uri.value, hashHex);
-
-          // putResource(uri.value, content.value, authFetch.value)
-          //   .then(() =>
-          //     toast.add({
-          //       severity: "success",
-          //       summary: "Successful Save!",
-          //       detail: "The workflow has been put at the URI.",
-          //       life: 5000,
-          //     })
-          //   )
-          //   .catch((err) =>
-          //     toast.add({
-          //       severity: "error",
-          //       summary: "Error on save!",
-          //       detail: err,
-          //       life: 5000,
-          //     })
-          //   );
         },
       },
       {
@@ -242,40 +229,6 @@ export default defineComponent({
             );
         },
       },
-      // {
-      //   label: "Prettify Triples\n(removes comments)",
-      //   icon: "pi pi-star",
-      //   command: () => {
-      //     parseToN3(content.value, uri.value)
-      //       .catch((err) => {
-      //         toast.add({
-      //           severity: "error",
-      //           summary: "Error while parsing!",
-      //           detail: err,
-      //           life: 5000,
-      //         });
-      //         throw new Error(err);
-      //       })
-      //       .then(
-      //         (parsedN3) =>
-      //           //   n3Store.value = parsedN3.store;
-      //           //   n3Prefixes.value = parsedN3.prefixes;
-      //           (content.value = toTTL(
-      //             parsedN3.store,
-      //             parsedN3.prefixes,
-      //             uri.value
-      //           ))
-      //       )
-      //       .then(() =>
-      //         toast.add({
-      //           severity: "success",
-      //           summary: "Prettified Triples!",
-      //           detail: "But all your comments are gone.",
-      //           life: 5000,
-      //         })
-      //       );
-      //   },
-      // },
       {
         label: "Delete Resource",
         icon: "pi pi-trash",
@@ -332,7 +285,7 @@ export default defineComponent({
       content,
       speedDialActions,
       back,
-      isLoading
+      isLoading,
     };
   },
 });
@@ -381,5 +334,4 @@ export default defineComponent({
   border-top-right-radius: 0;
   border-top-left-radius: 0;
 }
-
 </style>
