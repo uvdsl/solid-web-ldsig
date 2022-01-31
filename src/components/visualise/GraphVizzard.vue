@@ -112,7 +112,7 @@ export default {
         (enter) => {
           const selection = enter.append("g").attr("cursor", "pointer")
               .on("click", this.select).call(this.dragger);
-          const width = 500;
+          const width = 750;
           const height = 45;
           const border = 5;
           selection

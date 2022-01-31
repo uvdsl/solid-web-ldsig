@@ -99,6 +99,7 @@ export default defineComponent({
         .then((data) => (links.value = data.linkage))
         .finally(() => (isLoading.value = false));
     };
+    
 
     const traverse = async (
       uri: string
@@ -158,6 +159,8 @@ export default defineComponent({
     const openScribe = (selectedURI: string) => {
       context.emit("openScribe", selectedURI);
     };
+
+    if (uri.value !== "") fetch();
     return {
       nodes,
       links,
