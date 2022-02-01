@@ -1,6 +1,8 @@
 {
   "short_name": "Solid Web LDS",
   "name": "Solid Web Linked Data Signatures",
+  "themeColor": "#81c784", 
+  "msTileColor": "#1f2d40",
   "icons": [
     {
       "src": "./img/icons/android-chrome-192x192.png",
