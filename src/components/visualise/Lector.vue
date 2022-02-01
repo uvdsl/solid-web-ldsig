@@ -108,7 +108,7 @@ export default defineComponent({
         return { node: vNode, linkage: [] };
       }
       const base_uri = uri.split("__0x")[0];
-      const sigValUri = uri.split("__0x")[1].split("#")[0]; // if there is the anchor tag in the end
+      const sigValUri = uri.split("__0x")[1]?.split("#")[0]; // if there is the anchor tag in the end
       const { store } = await getResource(uri, authFetch.value)
         .then((resp) => resp.text())
         .then((txt) => parseToN3(txt, base_uri))

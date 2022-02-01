@@ -97,7 +97,7 @@ export default defineComponent({
         .then((resp) => resp.text());
       //   const parsedN3 =
       const base_uri = uri.value.split("__0x")[0];
-      const sigValUri = uri.value.split("__0x")[1].split("#")[0]; // if there is the anchor tag in the end
+      const sigValUri = uri.value.split("__0x")[1]?.split("#")[0]; // if there is the anchor tag in the end
       await parseToN3(txt, base_uri)
         .then((parsedN3) => verifyLDSignature(parsedN3.store, sigValUri))
         .then((check) => {
