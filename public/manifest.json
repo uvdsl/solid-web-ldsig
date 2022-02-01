@@ -1,6 +1,6 @@
 {
-  "short_name": "WILD-V",
-  "name": "Workflows In Linked Data Visualiser",
+  "short_name": "Solid Web LDS",
+  "name": "Solid Web Linked Data Signatures",
   "icons": [
     {
       "src": "./img/icons/android-chrome-192x192.png",
