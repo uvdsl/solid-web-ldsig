@@ -6,8 +6,9 @@
           placeholder="The URI of the Resource to search links for."
           v-model="uri"
           @keyup.enter="fetch"
+          :disabled="isLoading"
         />
-        <Button @click="fetch"> GET </Button>
+        <Button @click="fetch" :disabled="isLoading"> GET </Button>
       </div>
       <div class="progressbarWrapper">
         <ProgressBar v-if="isLoading" mode="indeterminate" />
@@ -27,7 +28,7 @@
   </div>
   <div class="grid">
     <div class="col md:col-6 md:col-offset-3">
-      <SpeedDial showIcon="pi pi-pencil" @click="openScribe('')" />
+      <SpeedDial showIcon="pi pi-pencil" @click="openScribe('')" :disabled="isLoading" />
     </div>
   </div>
 </template>
@@ -54,13 +55,13 @@ export default defineComponent({
   name: "Lector",
   components: { GraphVizzard },
   props: { inititalURI: String },
-  emits: ["openScribe", "back", "saveURI"],
+  emits: ["openScribe", "back", "saveURI", "fetchFinished"],
   setup(props, context) {
     const { authFetch } = useSolidSession();
     const toast = useToast();
     const isLoading = ref(false);
 
-    const uri = ref(props.inititalURI as string);
+    const uri = ref("");
     const isHTTP = computed(
       () => uri.value.startsWith("http://") || uri.value.startsWith("https://")
     );
@@ -92,12 +93,15 @@ export default defineComponent({
         severity: "info",
         summary: "Hang on ...",
         detail: "Loading the graph.",
-        life: 5000,
+        life: 2000,
       });
       visitedNodes = {};
       traverse(uri.value)
         .then((data) => (links.value = data.linkage))
-        .finally(() => (isLoading.value = false));
+        .finally(() => {
+          isLoading.value = false;
+          context.emit("fetchFinished"); // for demo mode
+        });
     };
 
     const traverse = async (
@@ -116,7 +120,7 @@ export default defineComponent({
       // node
       const label = uri;
       const { isVerified } = await verifyLDSignature(store, sigValUri);
-      const node = { label, isValid:isVerified };
+      const node = { label, isValid: isVerified };
       visitedNodes[uri] = node;
       // links
       const linking = getLinks(store);
@@ -161,7 +165,16 @@ export default defineComponent({
       context.emit("openScribe", selectedURI);
     };
 
-    if (uri.value !== "") fetch();
+    watch(
+      () => props.inititalURI,
+      () => {
+        if (uri.value !== (props.inititalURI as string)) {
+          uri.value = props.inititalURI as string;
+          fetch();
+        }
+      },
+      { immediate: true }
+    );
     return {
       nodes,
       links,
@@ -201,11 +214,12 @@ export default defineComponent({
 
 .progressbarWrapper {
   height: 2px;
-  padding: 0px 9px 0px 9px;
+  // padding: 0px 9px 0px 9px;
   transform: translate(0, -1px);
 }
 .p-progressbar {
   height: 2px;
+  width: 100%;
   padding-top: 0px;
   border-top-right-radius: 0;
   border-top-left-radius: 0;

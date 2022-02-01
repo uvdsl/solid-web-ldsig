@@ -7,8 +7,9 @@
           placeholder="The URI of the Resource to do actions on."
           v-model="uri"
           @keyup.enter="fetch"
+          :disabled="isLoading"
         />
-        <Button @click="fetch"> GET </Button>
+        <Button @click="fetch" :disabled="isLoading"> GET </Button>
       </div>
       <div class="progressbarWrapper">
         <ProgressBar v-if="isLoading" mode="indeterminate" />
@@ -57,7 +58,7 @@ export default defineComponent({
   name: "Scribe",
   components: { KeyDialog },
   props: { inititalURI: String },
-  emits: ["back"],
+  emits: ["back", "fetchFinished"],
   setup(props, context) {
     const toast = useToast();
     const { authFetch, sessionInfo } = useSolidSession();
@@ -152,6 +153,7 @@ export default defineComponent({
         .finally(() => {
           content.value = txt;
           isLoading.value = false;
+          context.emit("fetchFinished"); // for demo
         });
     };
     if (uri.value !== "") fetch();
@@ -348,7 +350,7 @@ export default defineComponent({
 }
 .progressbarWrapper {
   height: 2px;
-  padding: 0px 9px 0px 9px;
+  // padding: 0px 9px 0px 9px;
   transform: translate(0, -1px);
 }
 .p-progressbar {

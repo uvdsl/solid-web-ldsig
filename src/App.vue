@@ -5,25 +5,29 @@
     <router-link to="/about">About</router-link>
   </div> -->
   <router-view />
-   <Dialog header="We updated the App!" v-model:visible="isOpen"  position="bottomright">
-    <div> Please save your progress. </div>
-    <div> Use the latest version. </div>
+  <Dialog
+    header="We updated the App!"
+    v-model:visible="isOpen"
+    position="bottomright"
+  >
+    <div>Please save your progress.</div>
+    <div>Use the latest version.</div>
     <template #footer>
-        <Button label="Update" autofocus @click="refreshApp"/>
+      <Button label="Update" autofocus @click="refreshApp" />
     </template>
   </Dialog>
 </template>
 
 <script lang="ts">
 import HeaderBar from "@/components/standard/HeaderBar.vue";
-import { defineComponent, ref, watch, watchEffect } from "vue";
+import { defineComponent, ref, watch } from "vue";
 import { useServiceWorkerUpdate } from "@/composables/useServiceWorkerUpdate";
 export default defineComponent({
   name: "Home",
   components: {
     HeaderBar,
   },
-    setup() {
+  setup() {
     const { hasUpdatedAvailable, refreshApp } = useServiceWorkerUpdate();
     const isOpen = ref(false);
     watch(hasUpdatedAvailable, () => {
