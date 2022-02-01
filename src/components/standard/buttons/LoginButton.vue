@@ -12,7 +12,7 @@
     :draggable="false"
   >
     <div id="idps">
-        <div class="idp p-inputgroup">
+      <div class="idp p-inputgroup">
         <InputText
           placeholder="https://your.idp"
           type="text"
@@ -21,54 +21,62 @@
         />
         <Button @click="login(idp)"> > </Button>
       </div>
-        <Button
+      <Button
         class="idp"
-          @click="
-            idp = 'https://solidcommunity.net';
-            login(idp);
-            isDisplaingIDPs = !isDisplaingIDPs;
-          "
-        >
-          https://solidcommunity.net
-        </Button>
-        <Button
+        @click="
+          idp = 'https://solidcommunity.net';
+          login(idp);
+          isDisplaingIDPs = !isDisplaingIDPs;
+        "
+      >
+        https://solidcommunity.net
+      </Button>
+      <Button
         class="idp"
-          @click="
-            idp = 'https://solidweb.org';
-            login(idp);
-            isDisplaingIDPs = !isDisplaingIDPs;
-          "
-        >
-          https://solidweb.org
-        </Button>
-        <Button
+        @click="
+          idp = 'https://solidweb.org';
+          login(idp);
+          isDisplaingIDPs = !isDisplaingIDPs;
+        "
+      >
+        https://solidweb.org
+      </Button>
+      <Button
         class="idp"
-          @click="
-            idp = 'https://solidweb.me';
-            login(idp);
-            isDisplaingIDPs = !isDisplaingIDPs;
-          "
-        >
-          https://solidweb.me
-        </Button>
-        <Button
+        @click="
+          idp = 'https://solidweb.me';
+          login(idp);
+          isDisplaingIDPs = !isDisplaingIDPs;
+        "
+      >
+        https://solidweb.me
+      </Button>
+      <Button
         class="idp"
-          @click="
-            idp = 'https://inrupt.net';
-            login(idp);
-            isDisplaingIDPs = !isDisplaingIDPs;
-          "
-        >
-          https://inrupt.net
-        </Button>
+        @click="
+          idp = 'https://inrupt.net';
+          login(idp);
+          isDisplaingIDPs = !isDisplaingIDPs;
+        "
+      >
+        https://inrupt.net
+      </Button>
     </div>
     <template #footer>
+      <div class="flex justify-content-between">
+      <Button
+        label="Get a Pod!"
+        class="p-button-outlined p-button-rounded"
+        @click="GetAPod"
+      />
       <Button
         label="close"
         icon="pi pi-times"
-        class="p-button-text"
+        iconPos="right"
+        class="p-button-outlined p-button-rounded"
         @click="isDisplaingIDPs = !isDisplaingIDPs"
       />
+      </div>
     </template>
   </Dialog>
 </template>
@@ -83,7 +91,11 @@ export default defineComponent({
     const { login } = useSolidSession();
     const isDisplaingIDPs = ref(false);
     const idp = ref("");
-    return { login, isDisplaingIDPs, idp };
+    const GetAPod = () => {
+      window.open("https://solidproject.org//users/get-a-pod", "")?.focus();
+      // window.close();
+    };
+    return { login, isDisplaingIDPs, idp, GetAPod };
   },
 });
 </script>
@@ -95,8 +107,8 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   .idp {
-      margin-top: 5px;
-  margin-bottom: 5px;
+    margin-top: 5px;
+    margin-bottom: 5px;
   }
 }
 </style>
