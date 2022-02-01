@@ -38,18 +38,19 @@
     </p>
     </div>
     <template #footer>
+       <div class="flex justify-content-between">
+       <Button
+        label="Got it!"
+        class="p-button-outlined"
+        @click="openedDemo = false"
+      />
       <Button
         label="Demo me!"
         class="p-button-outlined"
         autofocus
         @click="showDemo"
       />
-      <Button
-        label="Got it!"
-        class="p-button-outlined"
-        autofocus
-        @click="openedDemo = false"
-      />
+      </div>
     </template>
   </Dialog>
 
@@ -67,46 +68,63 @@
     You will be taken to the other view of this app, but I will be there to help you.
   </p>
 <template #footer>
+   <div class="flex justify-content-between">
+      <Button
+        label="Got it!"
+        class="p-button-outlined"
+        @click="openedDemo2 = false; isInDemoMode = 0; lectorURI=''"
+      />
       <Button
         label="Continue!"
         class="p-button-outlined"
         autofocus
         @click="openedDemo2 = false; demoSelect();"
       />
-      <Button
-        label="Got it!"
-        class="p-button-outlined"
-        autofocus
-        @click="openedDemo2 = false; isInDemoMode = 0; lectorURI=''"
-      />
+      </div>
     </template>
   </Dialog>
 
 <Dialog header="Hello there!" v-model:visible="openedDemo3" position="bottom">
   <p>
-    The resource you selected has been
-  </p>
-   <p>
-    A green colored node indicates that the all verification steps were successful.<br />
-    A red colored node indicates that some verification step was unsuccessful.
+    Oh my! All three checks were unsuccessful:
+    <ol>
+      <li> Checking if all statments that are quoted, i.e. covered, by the signature are asserted. 
+      <p>
+          Looking closely, I commented out the second object #cool which a quoted triple exists for <br />
+          in the sec:proofOf object list of the _:signature.
+          </p>
+          </li>
+      <li> Checking if the signature for these quoted triples is valid.
+      <p>
+            Looking closely, I changed the last element of the signature from a '6' to a '0'.
+            </p>
+      </li>
+      <li> Checking if the signature matches the suffix of the Signed URI.  
+      <p>
+            Looking closely, the aforementioned change makes the signatures not match anymore. <br /> 
+            The Signed URI has still the original signature.
+            </p>
+      </li>
+    </ol>
+
   </p>
   <p>
-    Click on the red colored node to inspect the resource in detail! <br />
-    You will be taken to the other view of this app, but I will be there to help you.
+    If you want to check the error messages again, simply GET the resource again.
   </p>
 <template #footer>
-      <Button
-        label="Continue!"
-        class="p-button-outlined"
-        autofocus
-        @click="openedDemo3 = false; demoSelect();"
-      />
+   <div class="flex justify-content-between">
       <Button
         label="Got it!"
         class="p-button-outlined"
-        autofocus
         @click="openedDemo3 = false; isInDemoMode = 0; lectorURI='';"
       />
+       <Button
+        label="Continue!"
+        class="p-button-outlined"
+        autofocus
+        @click="openedDemo3 = false;" 
+      />
+      </div>
     </template>
   </Dialog>
 
