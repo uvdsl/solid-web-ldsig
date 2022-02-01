@@ -13,16 +13,16 @@
         <ProgressBar v-if="isLoading" mode="indeterminate" />
       </div>
     </div>
-    </div>
-    <div class="grid">
-      <div class="col">
-        <GraphVizzard
-          v-if="nodes.length != 0 && !isLoading"
-          :nodes="nodes"
-          :links="links"
-          class="sizing"
-          @selected="openScribe"
-        />
+  </div>
+  <div class="grid">
+    <div class="col">
+      <GraphVizzard
+        v-if="nodes.length != 0 && !isLoading"
+        :nodes="nodes"
+        :links="links"
+        class="sizing"
+        @selected="openScribe"
+      />
     </div>
   </div>
   <div class="grid">
@@ -99,7 +99,6 @@ export default defineComponent({
         .then((data) => (links.value = data.linkage))
         .finally(() => (isLoading.value = false));
     };
-    
 
     const traverse = async (
       uri: string
@@ -108,14 +107,16 @@ export default defineComponent({
       if (vNode) {
         return { node: vNode, linkage: [] };
       }
+      const base_uri = uri.split("__0x")[0];
+      const sigValUri = uri.split("__0x")[1].split("#")[0]; // if there is the anchor tag in the end
       const { store } = await getResource(uri, authFetch.value)
         .then((resp) => resp.text())
-        .then((txt) => parseToN3(txt, uri.split("__0x")[0]))
+        .then((txt) => parseToN3(txt, base_uri))
         .catch((err) => ({ store: new Store() }));
       // node
       const label = uri;
-      const isValid = await verifyLDSignature(store);
-      const node = { label, isValid };
+      const { isVerified } = await verifyLDSignature(store, sigValUri);
+      const node = { label, isValid:isVerified };
       visitedNodes[uri] = node;
       // links
       const linking = getLinks(store);

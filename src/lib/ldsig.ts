@@ -116,9 +116,9 @@ const reifyTriples = async (store: Store) => {
 
 
 
-export const verifyLDSignature = async (store: Store, fetch?: (url: RequestInfo, init?: RequestInit) => Promise<Response>) => {
+export const verifyLDSignature = async (store: Store, sigValUri: string, fetch?: (url: RequestInfo, init?: RequestInit) => Promise<Response>) => {
   const sig = store.getSubjects(RDF('type'), SEC('Signature'), null)[0];
-  if (!sig) return false;
+  if (!sig) return {isVerified:false};
   const pubKeyURI = store.getObjects(sig, SEC('publicKey'), null)[0].id;
   const pubKey = getResource(pubKeyURI, fetch)
     .then(resp => resp.text())
@@ -157,7 +157,16 @@ export const verifyLDSignature = async (store: Store, fetch?: (url: RequestInfo,
   const canon = canonRDF(refStore);
   const signatureOK = await verifyString(canon, sigVal, await pubKey);
 
-  return assertedOK && signatureOK;
+  // check if signature matches signedURI
+  const uriOK = (sigValUri == sigVal);
+
+  return {
+    isVerified: assertedOK && signatureOK && uriOK,
+    details: { assertedOK,
+    signatureOK,
+    uriOK
+    }
+  };
 }
 
 

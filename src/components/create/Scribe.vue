@@ -96,23 +96,48 @@ export default defineComponent({
         })
         .then((resp) => resp.text());
       //   const parsedN3 =
-      await parseToN3(txt, uri.value.split("__0x")[0])
-        .then((parsedN3) => verifyLDSignature(parsedN3.store))
-        .then((isVerified) => {
-          if (isVerified) {
+      const base_uri = uri.value.split("__0x")[0];
+      const sigValUri = uri.value.split("__0x")[1].split("#")[0]; // if there is the anchor tag in the end
+      await parseToN3(txt, base_uri)
+        .then((parsedN3) => verifyLDSignature(parsedN3.store, sigValUri))
+        .then((check) => {
+          if (check.isVerified) {
             toast.add({
               severity: "success",
-              summary: "Successful Verification!",
+              summary: "Looks good!",
               detail: "Linked Data Signature verified.",
               life: 5000,
             });
           } else {
-            toast.add({
-              severity: "error",
-              summary: "Not verified!",
-              detail: "Linked Data Signature could not be verified.",
-              life: 5000,
-            });
+            let duration = 5000;
+            if (!check.details?.assertedOK) {
+              toast.add({
+                severity: "error",
+                summary: "LDS Verification Error (1)",
+                detail:
+                  "The resource does not assert all statements coverd by its signature.",
+                life: duration,
+              });
+              duration += 2500;
+            }
+            if (!check.details?.signatureOK) {
+              toast.add({
+                severity: "error",
+                summary: "LDS Verification Error (2)",
+                detail:
+                  "The signature did not check out with the covered statements.",
+                life: duration,
+              });
+              duration += 2500;
+            }
+            if (!check.details?.uriOK) {
+              toast.add({
+                severity: "error",
+                summary: "LDS Verification Error (3)",
+                detail: "The signature does not match with the SignedURI.",
+                life: duration,
+              });
+            }
           }
         })
         .catch((err) => {
