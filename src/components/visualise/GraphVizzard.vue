@@ -114,13 +114,13 @@ export default {
               .on("click", this.select).call(this.dragger);
           const width = 750;
           const height = 45;
-          const border = 5;
+          const border = 2;
           selection
             .append("rect")
             .attr("width", width)
             .attr("height", height)
             .attr("x", -(width + border) / 2)
-            .attr("y", -(height + border) / 2)
+            .attr("y", -(height + border) / 2 - 5)
             .attr("rx", "10px") // round corners
             .attr("stroke", "white")
             .attr("stroke-width", border)
