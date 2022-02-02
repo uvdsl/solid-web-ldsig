@@ -1,9 +1,9 @@
 <template>
-  <div class="graphVizzard">
+  <!-- <div class="graphVizzard"> -->
     <svg id="svgGraph" ref="svgRef">
       <g id="root" />
     </svg>
-  </div>
+  <!-- </div> -->
 </template>
 
 <script>
@@ -26,7 +26,6 @@ export default {
   },
   watch: {
     links() {
-      d3.select("#root > *").remove()
       this.update();
     },
   },
