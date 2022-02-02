@@ -26,6 +26,7 @@ export default {
   },
   watch: {
     links() {
+      d3.select("#root > *").remove()
       this.update();
     },
   },
@@ -104,9 +105,6 @@ export default {
       .attr("fill", "#888");
 
     this.update();
-  },
-  beforeUnmount() {
-    d3.select("#root > *").remove()
   },
   methods: {
     update() {
