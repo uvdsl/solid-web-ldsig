@@ -44,8 +44,8 @@ export default {
   },
   mounted() {
     this.svg = d3.select("#svgGraph");
-    console.log(this.svg.select('#root').selectAll('.nodes').remove());
-    console.log(this.svg.select('#root').selectAll('.links').remove());
+    this.svg.select('#root').selectAll('.nodes').remove();
+    this.svg.select('#root').selectAll('.links').remove();
     const svg_pos = this.$refs.svgRef.getBoundingClientRect();
     const svg_x_center = svg_pos.x + svg_pos.width / 2;
     const svg_y_center = (svg_pos.y + svg_pos.height / 2) * 0.5;
