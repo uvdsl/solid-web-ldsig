@@ -105,6 +105,9 @@ export default {
 
     this.update();
   },
+  unmounted() {
+    d3.select("#root > *").remove()
+  },
   methods: {
     update() {
       // GRAPHICS
