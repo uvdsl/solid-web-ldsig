@@ -2,7 +2,7 @@
 
 Creating resources with Linkded Data Signatures on Solid. 
 
-![screenshot](https://github.com/uvdsl/solid-web-ldsig/blob/main/img/preview.png?raw=true)
+We have a live demo with an in-app tutorial available [here](https://km.aifb.kit.edu/services/solid-web-ldsig/)! 
 
 ## Requirement
 The app needs to be served in an HTTPS context (or from localhost). Otherwise, `crypto.subtle` is not accessible (which is by design).
