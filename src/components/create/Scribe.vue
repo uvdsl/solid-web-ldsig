@@ -57,7 +57,7 @@ import KeyDialog from "@/components/create/KeyDialog.vue";
 export default defineComponent({
   name: "Scribe",
   components: { KeyDialog },
-  props: { inititalURI: String , demoContent: String},
+  props: { inititalURI: String, demoContent: String },
   emits: ["back", "fetchFinished"],
   setup(props, context) {
     const toast = useToast();
@@ -77,6 +77,13 @@ export default defineComponent({
 
     // content of the information resource
     const content = ref(props.demoContent as string);
+    watch(
+      () => props.demoContent,
+      () => {
+        content.value = props.demoContent as string;
+      }
+      // { immediate: true }
+    );
 
     // get content of information resource
     const fetch = async () => {
@@ -164,7 +171,7 @@ export default defineComponent({
           uri.value = props.inititalURI as string;
           fetch();
         }
-      },
+      }
       // { immediate: true }
     );
 

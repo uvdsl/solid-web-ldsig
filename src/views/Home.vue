@@ -6,7 +6,7 @@
     :inititalURI="lectorURI"
     @fetchFinished="contDemo"
   />
-  <Scribe v-if="selected" @back="unselect" :inititalURI="scribeURI" @fetchFinished="contDemo"  :demoContent="demoContent"/>
+  <Scribe v-if="selected" @back="unselect" :inititalURI="scribeURI" @fetchFinished="contDemo" :demoContent="demoContent"/>
 
   <Toast
     position="bottom-right"
@@ -91,7 +91,7 @@
       <Button
         label="End Demo!"
         class="p-button-outlined"
-        @click="openedDemo2 = false; isInDemoMode = 0; lectorURI=''"
+        @click="openedDemo2 = false; isInDemoMode = 0; lectorURI='';demoContent='';"
       />
       <Button
         label="Continue!"
@@ -138,7 +138,7 @@
       <Button
         label="End Demo!"
         class="p-button-outlined"
-        @click="openedDemo3 = false; isInDemoMode = 0; lectorURI='';"
+        @click="openedDemo3 = false; isInDemoMode = 0; lectorURI='';demoContent='';"
       />
        <Button
         label="Continue!"
@@ -167,7 +167,7 @@
       <Button
         label="End Demo!"
         class="p-button-outlined"
-        @click="openedDemo4 = false; isInDemoMode = 0; lectorURI='';"
+        @click="openedDemo4 = false; isInDemoMode = 0; lectorURI='';demoContent='';"
       />
        <Button
         label="Continue!"
@@ -193,7 +193,7 @@
       <Button
         label="End Demo!"
         class="p-button-outlined"
-        @click="openedDemo5 = false; isInDemoMode = 0; lectorURI='';"
+        @click="openedDemo5 = false; isInDemoMode = 0; lectorURI='';demoContent='';"
       />
        <Button
        v-if="isLoggedIn"
@@ -230,7 +230,7 @@
       <Button
         label="End Demo!"
         class="p-button-outlined"
-        @click="openedDemo6 = false; isInDemoMode = 0; lectorURI='';"
+        @click="openedDemo6 = false; isInDemoMode = 0; lectorURI='';demoContent='';"
       />
        <Button
        v-if="isLoggedIn"
@@ -283,7 +283,7 @@
       <Button
         label="End Demo!"
         class="p-button-outlined"
-        @click="openedDemo7 = false; isInDemoMode = 0; lectorURI='';"
+        @click="openedDemo7 = false; isInDemoMode = 0; lectorURI='';demoContent='';"
       />
        <Button
        v-if="isLoggedIn"
@@ -324,13 +324,13 @@
       <Button
         label="Thanks!"
         class="p-button-outlined"
-        @click="openedDemo8 = false; isInDemoMode = 0; lectorURI='';"
+        @click="openedDemo8 = false; isInDemoMode = 0; lectorURI='';demoContent='';"
       />
        <Button
         label="Finish!"
         class="p-button-outlined"
         autofocus
-        @click="openedDemo8 = false;" 
+        @click="openedDemo8 = false;isInDemoMode = 0; lectorURI='';demoContent='';" 
       />
       </div>
     </template>
@@ -499,10 +499,10 @@ export default defineComponent({
           openedDemo2.value = true;
           break;
         case 2:
+        if (selected.value == 0) break;
           if (
             scribeURI.value !==
-              "https://uvdsl.solid.aifb.kit.edu/public/test.ttl__0xde959346ae4f31782ba7d9a936f905c5d297c07617848ceabc287004c03d3ea09942304da5cc7ae81129b61f379fe7382485e3f499c367a461f055ee50544736" &&
-            selected.value == 1
+              "https://uvdsl.solid.aifb.kit.edu/public/test.ttl__0xde959346ae4f31782ba7d9a936f905c5d297c07617848ceabc287004c03d3ea09942304da5cc7ae81129b61f379fe7382485e3f499c367a461f055ee50544736" 
           ) {
             toast.add({
               severity: "info",
@@ -518,16 +518,15 @@ export default defineComponent({
           openedDemo3.value = true;
           break;
         case 3:
+          if (selected.value == 0) break;
           if (
             scribeURI.value ===
-              "https://uvdsl.solid.aifb.kit.edu/public/test.ttl__0xde959346ae4f31782ba7d9a936f905c5d297c07617848ceabc287004c03d3ea09942304da5cc7ae81129b61f379fe7382485e3f499c367a461f055ee50544736" &&
-            selected.value == 1
+              "https://uvdsl.solid.aifb.kit.edu/public/test.ttl__0xde959346ae4f31782ba7d9a936f905c5d297c07617848ceabc287004c03d3ea09942304da5cc7ae81129b61f379fe7382485e3f499c367a461f055ee50544736" 
           ) {
             break;
           } else if (
             scribeURI.value !==
-              "https://uvdsl.solid.aifb.kit.edu/public/keys/b6f2bf60-82bb-11ec-ad2c-5bab2b4d9578.ttl__0x8e9bfa9322c1756c2b345b31e3954018a28d4854f3db130a629db12127f3fba3beedbf5ad5e73608b993549758ecc0a4107b86c638026a053d50a07441b1f70b" &&
-            selected.value == 1
+              "https://uvdsl.solid.aifb.kit.edu/public/keys/b6f2bf60-82bb-11ec-ad2c-5bab2b4d9578.ttl__0x8e9bfa9322c1756c2b345b31e3954018a28d4854f3db130a629db12127f3fba3beedbf5ad5e73608b993549758ecc0a4107b86c638026a053d50a07441b1f70b" 
           ) {
             toast.add({
               severity: "info",
