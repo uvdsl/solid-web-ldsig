@@ -105,7 +105,7 @@ export default {
 
     this.update();
   },
-  unmounted() {
+  beforeUnmount() {
     d3.select("#root > *").remove()
   },
   methods: {
