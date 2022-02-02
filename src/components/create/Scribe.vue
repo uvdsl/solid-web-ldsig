@@ -40,7 +40,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, toRefs } from "vue";
+import { defineComponent, ref, computed, toRefs, watch } from "vue";
 import { useSolidSession } from "@/composables/useSolidSession";
 
 import { useToast } from "primevue/usetoast";
@@ -57,7 +57,7 @@ import KeyDialog from "@/components/create/KeyDialog.vue";
 export default defineComponent({
   name: "Scribe",
   components: { KeyDialog },
-  props: { inititalURI: String },
+  props: { inititalURI: String , demoContent: String},
   emits: ["back", "fetchFinished"],
   setup(props, context) {
     const toast = useToast();
@@ -76,7 +76,7 @@ export default defineComponent({
     );
 
     // content of the information resource
-    const content = ref("");
+    const content = ref(props.demoContent as string);
 
     // get content of information resource
     const fetch = async () => {
@@ -157,6 +157,16 @@ export default defineComponent({
         });
     };
     if (uri.value !== "") fetch();
+    watch(
+      () => props.inititalURI,
+      () => {
+        if (uri.value !== (props.inititalURI as string)) {
+          uri.value = props.inititalURI as string;
+          fetch();
+        }
+      },
+      // { immediate: true }
+    );
 
     const resumeSaveAction = async (key: {
       uri: string;
