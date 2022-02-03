@@ -109,8 +109,8 @@
     <ol>
       <li> Checking if all statments that are quoted, i.e. covered, by the signature are asserted. 
       <p>
-          Looking closely, we commented out the second object #cool which a quoted triple exists for <br />
-          in the sec:proofOf object list of the _:signature.
+          Looking closely, we commented out the second object &lt;#cool&gt; which a quoted triple <br />
+          exists for in the sec:proofOf object list of the _:signature.
           </p>
           </li>
       <li> Checking if the signature for these quoted triples is valid.
