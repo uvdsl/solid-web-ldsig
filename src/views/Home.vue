@@ -479,7 +479,7 @@ export default defineComponent({
     };
     const refWebsite = () =>
       window
-        .open("https://uvdsl.solid.aifb.kit.edu/conf/2022/eswc/", "")
+        .open("https://uvdsl.solid.aifb.kit.edu/conf/2022/eswc-demo/", "")
         ?.focus();
     const refCode = () =>
       window.open("https://github.com/uvdsl/solid-web-ldsig", "")?.focus();
