@@ -479,14 +479,14 @@ export default defineComponent({
     };
     const refWebsite = () =>
       window
-        .open("http://uvdsl.solid.aifb.kit.edu/conf/2022/eswc-demo-ldsig/", "")
+        .open("https://uvdsl.solid.aifb.kit.edu/conf/2022/eswc/", "")
         ?.focus();
     const refCode = () =>
       window.open("https://github.com/uvdsl/solid-web-ldsig", "")?.focus();
     const refPaper = () =>
       window
         .open(
-          "http://uvdsl.solid.aifb.kit.edu/conf/2022/eswc-demo-ldsig/paper.pdf",
+          "https://uvdsl.solid.aifb.kit.edu/conf/2022/eswc-demo/paper.pdf",
           ""
         )
         ?.focus();
