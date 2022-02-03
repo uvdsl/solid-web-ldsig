@@ -202,6 +202,7 @@
         autofocus
         @click="openedDemo5 = false; isInDemoMode = 6; if(isLoggedIn) skipToSix()" 
       />
+      <LoginButton />
       </div>
     </template>
 
@@ -353,12 +354,13 @@
 import { defineComponent, ref, toRefs } from "vue";
 import Scribe from "@/components/create/Scribe.vue";
 import Lector from "@/components/visualise/Lector.vue";
+import LoginButton from "@/components/standard/buttons/LoginButton.vue";
 import { useToast } from "primevue/usetoast";
 import { useSolidSession } from "@/composables/useSolidSession";
 
 export default defineComponent({
   name: "Home",
-  components: { Scribe, Lector },
+  components: { Scribe, Lector, LoginButton },
   setup() {
     const { authFetch, sessionInfo } = useSolidSession();
     const { isLoggedIn } = toRefs(sessionInfo);
@@ -499,10 +501,10 @@ export default defineComponent({
           openedDemo2.value = true;
           break;
         case 2:
-        if (selected.value == 0) break;
+          if (selected.value == 0) break;
           if (
             scribeURI.value !==
-              "https://uvdsl.solid.aifb.kit.edu/public/test.ttl__0xde959346ae4f31782ba7d9a936f905c5d297c07617848ceabc287004c03d3ea09942304da5cc7ae81129b61f379fe7382485e3f499c367a461f055ee50544736" 
+            "https://uvdsl.solid.aifb.kit.edu/public/test.ttl__0xde959346ae4f31782ba7d9a936f905c5d297c07617848ceabc287004c03d3ea09942304da5cc7ae81129b61f379fe7382485e3f499c367a461f055ee50544736"
           ) {
             toast.add({
               severity: "info",
@@ -521,12 +523,12 @@ export default defineComponent({
           if (selected.value == 0) break;
           if (
             scribeURI.value ===
-              "https://uvdsl.solid.aifb.kit.edu/public/test.ttl__0xde959346ae4f31782ba7d9a936f905c5d297c07617848ceabc287004c03d3ea09942304da5cc7ae81129b61f379fe7382485e3f499c367a461f055ee50544736" 
+            "https://uvdsl.solid.aifb.kit.edu/public/test.ttl__0xde959346ae4f31782ba7d9a936f905c5d297c07617848ceabc287004c03d3ea09942304da5cc7ae81129b61f379fe7382485e3f499c367a461f055ee50544736"
           ) {
             break;
           } else if (
             scribeURI.value !==
-              "https://uvdsl.solid.aifb.kit.edu/public/keys/b6f2bf60-82bb-11ec-ad2c-5bab2b4d9578.ttl__0x8e9bfa9322c1756c2b345b31e3954018a28d4854f3db130a629db12127f3fba3beedbf5ad5e73608b993549758ecc0a4107b86c638026a053d50a07441b1f70b" 
+            "https://uvdsl.solid.aifb.kit.edu/public/keys/b6f2bf60-82bb-11ec-ad2c-5bab2b4d9578.ttl__0x8e9bfa9322c1756c2b345b31e3954018a28d4854f3db130a629db12127f3fba3beedbf5ad5e73608b993549758ecc0a4107b86c638026a053d50a07441b1f70b"
           ) {
             toast.add({
               severity: "info",
