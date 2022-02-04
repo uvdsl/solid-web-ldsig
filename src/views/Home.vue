@@ -188,6 +188,9 @@
     You will need your Solid Pod to store your keys. <br />
     Then you can sign your own RDF graphs!
   </p>
+  <p>
+   {{ isLoggedIn ? 'Oh! You are already logged in. Let\'s continue!' :'' }}
+  </p>
 <template #footer>
    <div class="flex justify-content-between">
       <Button
@@ -202,7 +205,7 @@
         autofocus
         @click="openedDemo5 = false; isInDemoMode = 6; if(isLoggedIn) skipToSix()" 
       />
-      <LoginButton />
+      <LoginButton v-else/>
       </div>
     </template>
 
@@ -395,65 +398,73 @@ export default defineComponent({
     };
 
     // demo
+    const refWebsite = () =>
+      window
+        .open("https://uvdsl.solid.aifb.kit.edu/conf/2022/eswc/demo", "")
+        ?.focus();
+    const refCode = () =>
+      window.open("https://github.com/uvdsl/solid-web-ldsig", "")?.focus();
+    const refPaper = () =>
+      window
+        .open(
+          "https://uvdsl.solid.aifb.kit.edu/conf/2022/eswc/demo-paper.pdf",
+          ""
+        )
+        ?.focus();
+
+    const secondDoc =
+      "https://uvdsl.solid.aifb.kit.edu/public/eswc/demo__0xf47c978f0bf4dda7d3e868a1774d7160d4d80a61709458b78dd7b70724afe2599c6137ce288c97e5d3f55bcc4b3f81e5f5f09b8e645c92cbec0e4413d7fc60fb";
+    // "https://uvdsl.solid.aifb.kit.edu/public/test.ttl__0x877d43e73d5db37e1c335fddcffb475f8a01be513952eccf0ac9d45d7c1657ac9d8d2e097f5dc3e4fe5bffc78b7ee1c77fbed31e2b77c8ef51c867f6ebcb8256";
+    const firstDoc =
+      "https://uvdsl.solid.aifb.kit.edu/public/eswc/demo__0xd90cb3d355d76dc090e298b87ef15e946478cb24a6a71ed178b5aaa90c24d01200fd8b812d6d4faf3bc3f525c40c6fb32b7557445479cb8c1a4345658a3dc474";
+    // "https://uvdsl.solid.aifb.kit.edu/public/test.ttl__0xde959346ae4f31782ba7d9a936f905c5d297c07617848ceabc287004c03d3ea09942304da5cc7ae81129b61f379fe7382485e3f499c367a461f055ee50544736";
+    const keyDoc =
+      "https://uvdsl.solid.aifb.kit.edu/public/keys/52c13ca0-85a0-11ec-ad2c-5bab2b4d9578.ttl__0xb7898c987e2e5ba9ae6b9f28dbf89534b6d642b5d55bf2ff88555add2a55afb7f068f49a54804640c6b3c70fb8e18e061daa2b71b22e065f01294c29c6220db6";
+    // "https://uvdsl.solid.aifb.kit.edu/public/keys/b6f2bf60-82bb-11ec-ad2c-5bab2b4d9578.ttl__0x8e9bfa9322c1756c2b345b31e3954018a28d4854f3db130a629db12127f3fba3beedbf5ad5e73608b993549758ecc0a4107b86c638026a053d50a07441b1f70b";
+
+    const toastWrongView = () => {
+      toast.add({
+        severity: "info",
+        summary: "Wrong View!",
+        detail: "Swith the View using the Speeddial at the bottom.",
+        life: 5000,
+      });
+    };
+
     const openCurrentDemoDialog = () => {
       console.log(isInDemoMode.value);
       switch (isInDemoMode.value) {
         case 2:
           if (selected.value == 1) {
-            toast.add({
-              severity: "info",
-              summary: "Wrong View!",
-              detail: "Swith the View using the Speeddial at the bottom.",
-              life: 5000,
-            });
+            toastWrongView();
             return;
           }
           openedDemo2.value = true;
           break;
         case 3:
           if (selected.value == 0) {
-            toast.add({
-              severity: "info",
-              summary: "Wrong View!",
-              detail: "Swith the View using the Speeddial at the bottom.",
-              life: 5000,
-            });
+            toastWrongView();
             return;
           }
           openedDemo3.value = true;
           break;
         case 4:
           if (selected.value == 0) {
-            toast.add({
-              severity: "info",
-              summary: "Wrong View!",
-              detail: "Swith the View using the Speeddial at the bottom.",
-              life: 5000,
-            });
+            toastWrongView();
             return;
           }
           openedDemo4.value = true;
           break;
         case 6:
           if (selected.value == 0) {
-            toast.add({
-              severity: "info",
-              summary: "Wrong View!",
-              detail: "Swith the View using the Speeddial at the bottom.",
-              life: 5000,
-            });
+            toastWrongView();
             return;
           }
           openedDemo6.value = true;
           break;
         case 7:
           if (selected.value == 0) {
-            toast.add({
-              severity: "info",
-              summary: "Wrong View!",
-              detail: "Swith the View using the Speeddial at the bottom.",
-              life: 5000,
-            });
+            toastWrongView();
             return;
           }
           openedDemo7.value = true;
@@ -475,23 +486,9 @@ export default defineComponent({
         return;
       }
       // activateDemoMode
-      lectorURI.value =
-        "https://uvdsl.solid.aifb.kit.edu/public/test.ttl__0x877d43e73d5db37e1c335fddcffb475f8a01be513952eccf0ac9d45d7c1657ac9d8d2e097f5dc3e4fe5bffc78b7ee1c77fbed31e2b77c8ef51c867f6ebcb8256";
+      lectorURI.value = secondDoc;
       isInDemoMode.value = 1;
     };
-    const refWebsite = () =>
-      window
-        .open("https://uvdsl.solid.aifb.kit.edu/conf/2022/eswc-demo/", "")
-        ?.focus();
-    const refCode = () =>
-      window.open("https://github.com/uvdsl/solid-web-ldsig", "")?.focus();
-    const refPaper = () =>
-      window
-        .open(
-          "https://uvdsl.solid.aifb.kit.edu/conf/2022/eswc-demo/paper.pdf",
-          ""
-        )
-        ?.focus();
 
     const contDemo = () => {
       console.log(isInDemoMode.value);
@@ -502,10 +499,7 @@ export default defineComponent({
           break;
         case 2:
           if (selected.value == 0) break;
-          if (
-            scribeURI.value !==
-            "https://uvdsl.solid.aifb.kit.edu/public/test.ttl__0xde959346ae4f31782ba7d9a936f905c5d297c07617848ceabc287004c03d3ea09942304da5cc7ae81129b61f379fe7382485e3f499c367a461f055ee50544736"
-          ) {
+          if (scribeURI.value !== firstDoc) {
             toast.add({
               severity: "info",
               summary: "Mind Tricks!",
@@ -521,15 +515,9 @@ export default defineComponent({
           break;
         case 3:
           if (selected.value == 0) break;
-          if (
-            scribeURI.value ===
-            "https://uvdsl.solid.aifb.kit.edu/public/test.ttl__0xde959346ae4f31782ba7d9a936f905c5d297c07617848ceabc287004c03d3ea09942304da5cc7ae81129b61f379fe7382485e3f499c367a461f055ee50544736"
-          ) {
+          if (scribeURI.value === firstDoc) {
             break;
-          } else if (
-            scribeURI.value !==
-            "https://uvdsl.solid.aifb.kit.edu/public/keys/b6f2bf60-82bb-11ec-ad2c-5bab2b4d9578.ttl__0x8e9bfa9322c1756c2b345b31e3954018a28d4854f3db130a629db12127f3fba3beedbf5ad5e73608b993549758ecc0a4107b86c638026a053d50a07441b1f70b"
-          ) {
+          } else if (scribeURI.value !== keyDoc) {
             toast.add({
               severity: "info",
               summary: "Mind Tricks!",
@@ -547,23 +535,21 @@ export default defineComponent({
     const demoSelect = (res: string) => {
       switch (res) {
         case "err":
-          res =
-            "https://uvdsl.solid.aifb.kit.edu/public/test.ttl__0xde959346ae4f31782ba7d9a936f905c5d297c07617848ceabc287004c03d3ea09942304da5cc7ae81129b61f379fe7382485e3f499c367a461f055ee50544736";
+          res = firstDoc;
           break;
         case "key":
-          res =
-            "https://uvdsl.solid.aifb.kit.edu/public/keys/b6f2bf60-82bb-11ec-ad2c-5bab2b4d9578.ttl__0x8e9bfa9322c1756c2b345b31e3954018a28d4854f3db130a629db12127f3fba3beedbf5ad5e73608b993549758ecc0a4107b86c638026a053d50a07441b1f70b";
+          res = keyDoc;
           break;
       }
       select(res);
     };
     const skipToSix = () => {
-      lectorURI.value =
-        "https://uvdsl.solid.aifb.kit.edu/public/test.ttl__0x877d43e73d5db37e1c335fddcffb475f8a01be513952eccf0ac9d45d7c1657ac9d8d2e097f5dc3e4fe5bffc78b7ee1c77fbed31e2b77c8ef51c867f6ebcb8256";
+      lectorURI.value = secondDoc;
       isInDemoMode.value = 6;
-      demoContent.value = `@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
+      demoContent.value = `
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
       
-<#this> rdfs:seeAlso <https://uvdsl.solid.aifb.kit.edu/public/test.ttl__0x877d43e73d5db37e1c335fddcffb475f8a01be513952eccf0ac9d45d7c1657ac9d8d2e097f5dc3e4fe5bffc78b7ee1c77fbed31e2b77c8ef51c867f6ebcb8256> .`;
+<#this> rdfs:seeAlso <${secondDoc}> .`;
       select("");
       openedDemo6.value = true;
     };
