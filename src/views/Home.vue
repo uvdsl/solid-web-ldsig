@@ -159,7 +159,7 @@
   <p>
    For this resource, all verification checks are succesfull. Looks good! <br />
    Additionally, you can now see that we model the information on the key <br />
-   itself using RDF instead of some string encoding in JSON format. <br />
+   itself using RDF instead of some string encoding. <br />
    All of these RDF statements are covered by the signature (see the RDF-star?).
   </p>
 <template #footer>
