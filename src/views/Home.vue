@@ -115,7 +115,7 @@
           </li>
       <li> Checking if the signature for these quoted triples is valid.
       <p>
-            Looking closely, we changed the last element of the signature from a '6' to a '0'.
+            Looking closely, we changed the last element of the signature.
             </p>
       </li>
       <li> Checking if the signature matches the suffix of the Signed URI.  
