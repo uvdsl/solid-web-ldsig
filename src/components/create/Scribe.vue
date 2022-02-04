@@ -182,9 +182,9 @@ export default defineComponent({
       jwk: any; // JsonWebKey
     }) => {
       displayKeyDialog.value = false;
-
+      const base_uri = uri.value.split("__0x")[0];
       const { rdf_string, hash, signature } = await signLD(
-        uri.value,
+        base_uri,
         content.value,
         key.jwk,
         key.pubKeyLoc,
