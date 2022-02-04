@@ -120,23 +120,25 @@ export const verifyLDSignature = async (store: Store, sigValUri: string, fetch?:
   const sig = store.getSubjects(RDF('type'), SEC('Signature'), null)[0];
   if (!sig) return {isVerified:false};
   const pubKeyURI = store.getObjects(sig, SEC('publicKey'), null)[0].id;
-  const pubKey = getResource(pubKeyURI, fetch)
+  console.log(pubKeyURI)
+  let pubKeyStore = store
+  if (store.getObjects(pubKeyURI, SEC('publicKeyJwk'), null)[0] as Term === undefined) {
+    pubKeyStore = await getResource(pubKeyURI, fetch)
     .then(resp => resp.text())
     .then(txt => parseToN3(txt, pubKeyURI))
-    .then(parsedN3 => {
-      const jwkTerm = parsedN3.store.getObjects(pubKeyURI, SEC('publicKeyJwk'), null)[0] as Term;
-      const jwk = {
-        alg: parsedN3.store.getObjects(jwkTerm, JWK('alg'), null)[0].value,
-        crv: parsedN3.store.getObjects(jwkTerm, JWK('crv'), null)[0].value,
-        ext: parsedN3.store.getObjects(jwkTerm, JWK('ext'), null)[0].value === "true",
-        kty: parsedN3.store.getObjects(jwkTerm, JWK('kty'), null)[0].value,
-        x: parsedN3.store.getObjects(jwkTerm, JWK('x'), null)[0].value,
-        y: parsedN3.store.getObjects(jwkTerm, JWK('y'), null)[0].value,
-        key_ops: parsedN3.store.getObjects(jwkTerm, JWK('key_ops'), null).map(e => e.value)
-      }
-      return jwk
-    })
-    .then(jwk => importKey(jwk));
+    .then(parsedN3 => parsedN3.store);
+  }
+  const jwkTerm = pubKeyStore.getObjects(pubKeyURI, SEC('publicKeyJwk'), null)[0] as Term;
+  const jwk = {
+    alg: pubKeyStore.getObjects(jwkTerm, JWK('alg'), null)[0].value,
+    crv: pubKeyStore.getObjects(jwkTerm, JWK('crv'), null)[0].value,
+    ext: pubKeyStore.getObjects(jwkTerm, JWK('ext'), null)[0].value === "true",
+    kty: pubKeyStore.getObjects(jwkTerm, JWK('kty'), null)[0].value,
+    x: pubKeyStore.getObjects(jwkTerm, JWK('x'), null)[0].value,
+    y: pubKeyStore.getObjects(jwkTerm, JWK('y'), null)[0].value,
+    key_ops: pubKeyStore.getObjects(jwkTerm, JWK('key_ops'), null).map(e => e.value)
+  }
+  const pubKey = await importKey(jwk);
 
   // check if reified statements are asserted  
   // const ref = getListItems(store, store.getObjects(sig, SEC('proofOf'), null)[0]).map(stmt => {
@@ -155,7 +157,7 @@ export const verifyLDSignature = async (store: Store, sigValUri: string, fetch?:
   const sigVal = store.getObjects(sig, SEC('signatureValue'), null)[0].value;
   const refStore = new Store(ref);
   const canon = canonRDF(refStore);
-  const signatureOK = await verifyString(canon, sigVal, await pubKey);
+  const signatureOK = await verifyString(canon, sigVal, pubKey);
 
   // check if signature matches signedURI
   const uriOK = (sigValUri == sigVal);

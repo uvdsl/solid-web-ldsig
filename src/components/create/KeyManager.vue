@@ -197,7 +197,7 @@ export default defineComponent({
         publicKeyContent,
         authFetch.value
       );
-      let pubKeyLocation = await pubKeyCREATE.then(getLocationHeader);
+      let pubKeyLocation = await pubKeyCREATE.then(getLocationHeader).then(loc => loc.split('.ttl')[0]);
 
       const { rdf_string, hash, signature } = await signLD(
         pubKeyLocation, // base uri == "here"
