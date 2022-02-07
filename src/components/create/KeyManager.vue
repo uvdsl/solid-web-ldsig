@@ -62,25 +62,47 @@ export default defineComponent({
       );
       return jwkQuads
         ?.map((quad) => {
-          const uri = quad.subject.id
-          const label = privateKeysRDF.value?.getObjects(quad.subject,"http://www.w3.org/2000/01/rdf-schema#label",null)[0]?.value
-          const pubKeyLoc = privateKeysRDF.value?.getObjects(quad.subject,"https://w3id.org/security#publicKey",null)[0]?.id
-          const jwkTerm = privateKeysRDF.value?.getObjects(quad.subject,SEC('privateKeyJwk'), null)[0] as Term;
+          const uri = quad.subject.id;
+          const label = privateKeysRDF.value?.getObjects(
+            quad.subject,
+            "http://www.w3.org/2000/01/rdf-schema#label",
+            null
+          )[0]?.value;
+          const pubKeyLoc = privateKeysRDF.value?.getObjects(
+            quad.subject,
+            "https://w3id.org/security#publicKey",
+            null
+          )[0]?.id;
+          const jwkTerm = privateKeysRDF.value?.getObjects(
+            quad.subject,
+            SEC("privateKeyJwk"),
+            null
+          )[0] as Term;
           const jwk = {
-            alg: privateKeysRDF.value?.getObjects(jwkTerm,JWK('alg'), null)[0].value,
-            crv: privateKeysRDF.value?.getObjects(jwkTerm,JWK('crv'), null)[0].value,
-            d: privateKeysRDF.value?.getObjects(jwkTerm,JWK('d'), null)[0].value,
-            ext: privateKeysRDF.value?.getObjects(jwkTerm,JWK('ext'), null)[0].value === "true",
-            kty: privateKeysRDF.value?.getObjects(jwkTerm,JWK('kty'), null)[0].value,
-            x: privateKeysRDF.value?.getObjects(jwkTerm,JWK('x'), null)[0].value,
-            y: privateKeysRDF.value?.getObjects(jwkTerm,JWK('y'), null)[0].value,
-            key_ops: privateKeysRDF.value?.getObjects(jwkTerm,JWK('key_ops'), null).map(e => e.value)
-          }
+            alg: privateKeysRDF.value?.getObjects(jwkTerm, JWK("alg"), null)[0]
+              .value,
+            crv: privateKeysRDF.value?.getObjects(jwkTerm, JWK("crv"), null)[0]
+              .value,
+            d: privateKeysRDF.value?.getObjects(jwkTerm, JWK("d"), null)[0]
+              .value,
+            ext:
+              privateKeysRDF.value?.getObjects(jwkTerm, JWK("ext"), null)[0]
+                .value === "true",
+            kty: privateKeysRDF.value?.getObjects(jwkTerm, JWK("kty"), null)[0]
+              .value,
+            x: privateKeysRDF.value?.getObjects(jwkTerm, JWK("x"), null)[0]
+              .value,
+            y: privateKeysRDF.value?.getObjects(jwkTerm, JWK("y"), null)[0]
+              .value,
+            key_ops: privateKeysRDF.value
+              ?.getObjects(jwkTerm, JWK("key_ops"), null)
+              .map((e) => e.value),
+          };
           return {
             uri,
             label,
             pubKeyLoc,
-            jwk
+            jwk,
           };
         })
         .filter((key) => key.label);
@@ -89,6 +111,27 @@ export default defineComponent({
       { uri: string; label: string; pubKeyLoc: string; jwk: string } | undefined
     > = ref();
     const keyName = ref("");
+
+    const publicACL = `# ACL resource for the profile folder
+@prefix acl: <http://www.w3.org/ns/auth/acl#>.
+@prefix foaf: <http://xmlns.com/foaf/0.1/>.
+
+# The owner has all permissions
+<#owner>
+    a acl:Authorization;
+    acl:agent <${webId?.value}>;
+    acl:accessTo <./>;
+    acl:default <./>;
+    acl:mode acl:Read, acl:Write, acl:Control.
+
+# The public has read permissions
+<#public>
+    a acl:Authorization;
+    acl:agentClass foaf:Agent;
+    acl:accessTo <./>;
+    acl:default <./>;
+    acl:mode acl:Read.
+`;
 
     // get the keys
     const getContainerItems = async (containerURI: string) => {
@@ -117,24 +160,57 @@ export default defineComponent({
         if (baseURI.value) {
           isLoading.value = true;
           const publicKeyFolder = `${baseURI.value}/public/keys/`;
-          const pubFolderPromise = getResource(publicKeyFolder).catch(
+          const pubFolderPromise = getResource(
+            publicKeyFolder,
+            authFetch.value
+          ).catch(
             //   publicKeysRDF.value =  await getContainerItems(publicKeyFolder).catch(
             (err) => {
               // make sure key directories exist
-              if (err.message.includes("`404`")) {
-                toast.add({
-                  severity: "warn",
-                  summary: "Public Key directory not found.",
-                  detail: "Creating it now.",
-                  life: 5000,
-                });
-                return createContainer(
-                  `${baseURI.value}/public/`,
-                  "keys",
-                  authFetch.value
-                );
+              if (!err.message.includes("`404`")) {
+                return err;
               }
-              return err;
+              toast.add({
+                severity: "info",
+                summary: "Public Key directory not found.",
+                detail: "Creating it now.",
+                life: 7500,
+              });
+              return createContainer(
+                `${baseURI.value}/public/`,
+                "keys",
+                authFetch.value
+              ).catch((err) => {
+                // make sure public directories exist
+                if (!err.message.includes("`404`")) {
+                  return err;
+                }
+                toast.add({
+                  severity: "info",
+                  summary: "Public directory not found.",
+                  detail: "Creating it now.",
+                  life: 10000,
+                });
+                return createContainer( // TODO make recursive function
+                  `${baseURI.value}/`,
+                  "public",
+                  authFetch.value
+                )
+                  .then(() =>
+                    putResource(
+                      `${baseURI.value}/public/.acl`,
+                      publicACL,
+                      authFetch.value
+                    )
+                  )
+                  .then(() =>
+                    createContainer(
+                      `${baseURI.value}/public/`,
+                      "keys",
+                      authFetch.value
+                    )
+                  );
+              });
             }
           );
           const privateKeyFolder = `${baseURI.value}/private/keys/`;
@@ -142,22 +218,45 @@ export default defineComponent({
             privateKeyFolder
           ).catch((err) => {
             // make sure key directories exist
-            if (err.message.includes("`404`")) {
-              toast.add({
-                severity: "warn",
-                summary: "Private Key directory not found.",
-                detail: "Creating it now.",
-                life: 5000,
-              });
-              return createContainer(
-                `${baseURI.value}/private/`,
-                "keys",
-                authFetch.value
-              )
-                .then(getLocationHeader)
-                .then(getContainerItems);
+            if (!err.message.includes("`404`")) {
+              return err;
             }
-            return err;
+            toast.add({
+              severity: "info",
+              summary: "Private Key directory not found.",
+              detail: "Creating it now.",
+              life: 7500,
+            });
+            return createContainer(
+              `${baseURI.value}/private/`,
+              "keys",
+              authFetch.value
+            )
+              .catch((err) => {
+                // make sure public directories exist
+                if (!err.message.includes("`404`")) {
+                  return err;
+                }
+                toast.add({
+                  severity: "info",
+                  summary: "Private directory not found.",
+                  detail: "Creating it now.",
+                  life: 10000,
+                });
+                return createContainer(
+                  `${baseURI.value}/`,
+                  "private",
+                  authFetch.value
+                ).then(() =>
+                  createContainer(
+                    `${baseURI.value}/private/`,
+                    "keys",
+                    authFetch.value
+                  )
+                );
+              })
+              .then(getLocationHeader)
+              .then(getContainerItems);
           });
           pubFolderPromise.then(() => (isLoading.value = false));
         }
@@ -191,19 +290,25 @@ export default defineComponent({
 
       // store the keys in solid pod
       const publicKeyFolder = `${baseURI.value}/public/keys/`;
-      let publicKeyContent = createRDFofKey(label, webId?.value as string, pubKeyJWK);
+      let publicKeyContent = createRDFofKey(
+        label,
+        webId?.value as string,
+        pubKeyJWK
+      );
       const pubKeyCREATE = createResource(
         publicKeyFolder,
         publicKeyContent,
         authFetch.value
       );
-      let pubKeyLocation = await pubKeyCREATE.then(getLocationHeader).then(loc => loc.split('.ttl')[0]);
+      let pubKeyLocation = await pubKeyCREATE
+        .then(getLocationHeader)
+        .then((loc) => loc.split(".ttl")[0]);
 
       const { rdf_string, hash, signature } = await signLD(
         pubKeyLocation, // base uri == "here"
         publicKeyContent,
         privKeyJWK,
-        "#key", // keyLoc = "here"#key 
+        "#key", // keyLoc = "here"#key
         webId?.value as string,
         new Date()
       );
@@ -219,7 +324,12 @@ export default defineComponent({
       const privateKeyFolder = `${baseURI.value}/private/keys/`;
       const privKeyCREATE = createResource(
         privateKeyFolder,
-        createRDFofKey(label, webId?.value as string, privKeyJWK, `${pubKeyLocation}#key`),
+        createRDFofKey(
+          label,
+          webId?.value as string,
+          privKeyJWK,
+          `${pubKeyLocation}#key`
+        ),
         authFetch.value
       );
 
