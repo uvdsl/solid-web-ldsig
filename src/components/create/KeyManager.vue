@@ -191,23 +191,31 @@ export default defineComponent({
                   detail: "Creating it now.",
                   life: 10000,
                 });
-                return createContainer( // TODO make recursive function
+                return createContainer(
+                  // TODO make recursive function
                   `${baseURI.value}/`,
                   "public",
                   authFetch.value
                 )
                   .then(() =>
-                    putResource(
-                      `${baseURI.value}/public/.acl`,
-                      publicACL,
-                      authFetch.value
-                    )
-                  )
-                  .then(() =>
                     createContainer(
                       `${baseURI.value}/public/`,
                       "keys",
                       authFetch.value
+                    )
+                  )
+                  .then(() =>
+                    putResource(
+                      `${baseURI.value}/public/keys/.acl`,
+                      publicACL,
+                      authFetch.value
+                    ).catch((err) =>
+                      toast.add({
+                        severity: "error",
+                        summary: "Missing Control Permission.",
+                        detail: "Could not make Public Keys directory public.",
+                        life: 10000,
+                      })
                     )
                   );
               });
