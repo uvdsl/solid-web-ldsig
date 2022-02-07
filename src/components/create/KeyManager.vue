@@ -167,6 +167,7 @@ export default defineComponent({
             //   publicKeysRDF.value =  await getContainerItems(publicKeyFolder).catch(
             (err) => {
               // make sure key directories exist
+              // TODO make recursive function
               if (!err.message.includes("`404`")) {
                 return err;
               }
@@ -192,7 +193,6 @@ export default defineComponent({
                   life: 10000,
                 });
                 return createContainer(
-                  // TODO make recursive function
                   `${baseURI.value}/`,
                   "public",
                   authFetch.value
