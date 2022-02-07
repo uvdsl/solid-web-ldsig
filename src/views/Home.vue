@@ -59,7 +59,7 @@
         <Button
         v-if="isLoggedIn"
         label="Skip to Part 2!"
-        class="p-button-outlined"
+        class="p-button-outlined p-button-warning"
         autofocus
         @click="openedDemo = false; skipToSix()"
       />
@@ -210,18 +210,21 @@
     </template>
 
   </Dialog>
-     <Dialog header="Create your own signed RDF graph!" v-model:visible="openedDemo6" position="bottom">
+     <Dialog header="Create your own signed RDF graph!" v-model:visible="openedDemo6" position="center">
    <p>
-    Now you will create a resource, sign it and store it in your Pod. <br />
-    <b>Please provide a URI in the inputfield </b> (but don't hit enter or GET), <br />
-    e.g. https://your.pod/public/test.ttl <br />
-    Substitute your.pod with the location of your pod. 
+    Now you will create a resource, sign it and store it in your Pod. </p>
+    
+    <ol> 
+      <li>
+        Please provide a URI in the inputfield at the top, e.g.
+        <p> 
+        <i class="text-primary" >{{webId.split("/profile/")[0]}}/public/eswc-demo</i>
+        </p>
+      </li>
+    </ol>
+    <p> 
+      Do so <b>now</b> before you hit continue.
     </p>
-    <p>
-    As you can see, we already provided you with a link to an existing resource at a Signed URI. <br />
-    You can edit the resource as you like but we would suggest you leave that link in. Otherwise, <br />
-    you won't see your resource connected to the existing graph.
-  </p>
   <p>
    {{ !isLoggedIn ?
     `
@@ -247,33 +250,23 @@
     </template>
   </Dialog>
 
-     <Dialog header="Time for Action!" v-model:visible="openedDemo7" position="top">
-       <p><b> By the way:</b> <br /> 
-       You can drag this dialog so you can keep it open while following along.</p>
-   <p>
-    The speed dial at the bottom provides you with all the functionality you need:
-    <ul>
-      <li> Going Back to the Graph Viz. </li>
-      <li> DELETE a resource. (Be careful :) )</li>
-      <li> Check the syntax of your RDF.</li>
-      <li> Create a Linked Data Signature for your RDF graph.</li>
-      <li> PUT a resource at the specified URI.</li>
-    </ul>
-    </p>
-    <p>
-    When creating a Linked Data Signature for your graph, you will be prompted with <br />
-    a dialog where you can create new keys and pick then from existing keys for signing. <br />
-    The keys are stored in your Pod. You can find them in the `keys` directory in your <br />
-    private and public directories, e.g. https://your.pod/private/keys/ .
-  </p>
-  <p>
-    After the signature has been created, you will notice that the signature value has <br />
-    automatically been appended to the URI. Now it is a Signed URI.
-    </p>
-    <p>
-      You can save your resource using the speed dial. To check if your resource is actually <br /> 
-      stored in your Pod, either visit your Pod or delete the RDF content in the text area <br /> 
-      and hit GET again.
+     <Dialog header="Sign the Resource!" v-model:visible="openedDemo7" position="center">
+       <p>
+    We already provided you with some content for your resource.
+      </p>
+   <ol start="2"> 
+      <li>
+        Create a Linked Data Signature:
+        <p>
+        <ul>
+          <li> Click on the <span class="text-primary">speed dial</span> at the bottom </li>
+          <li> Click on the <span class="text-primary">key symbol</span> to open the key dialog  </li>
+        </ul>
+        </p>
+      </li>
+    </ol>
+        <p> 
+      Do so <b>now</b> before you hit continue. 
       </p>
   <p>
    {{ !isLoggedIn ?
@@ -300,18 +293,139 @@
     </template>
   </Dialog>
 
+     <Dialog header="Save the Resource!" v-model:visible="openedDemo8" position="center">
+   <p>
+     The Linked Data Signature has been added to the resource and <br />
+     its signature value has been appended to the URI, now a Signed URI.
+   </p>
+    <ol start="3"> 
+      <li>
+        Save the resource to your Pod.
+        <p>
+        <ul>
+          <li> Click on the <span class="text-primary">speed dial</span> at the bottom </li>
+          <li> Click on the <span class="text-primary">floppy disk symbol</span> to save the resource </li>
+        </ul>
+        </p>
+      </li>
+    </ol>
+        <p> 
+      Do so <b>now</b> before you hit continue.
+    </p>
+<template #footer>
+   <div class="flex justify-content-between">
+      <Button
+        label="End Demo!"
+        class="p-button-outlined"
+        @click="openedDemo8 = false; isInDemoMode = 0; lectorURI='';demoContent='';"
+      />
+       <Button
+       v-if="isLoggedIn"
+        label="Continue!"
+        class="p-button-outlined"
+        autofocus
+        @click="openedDemo8 = false; isInDemoMode = 9; openedDemo9 = true;" 
+      />
+      </div>
+    </template>
+  </Dialog>
 
-   <Dialog header="Congratulations!" v-model:visible="openedDemo8" position="center">
+
+     <Dialog header="Check out your additon to the Graph!" v-model:visible="openedDemo9" position="center">
+   <p>
+     After you successfully saved the resource, you can...
+   </p>
+    <ol start="4"> 
+      <li>
+        Admire your addition to the document graph
+        <p>
+        <ul>
+           <li> <span class="text-primary">Copy the resource URI</span> from the top inputfield</li>
+          <li> Click on the <span class="text-primary">speed dial</span> at the bottom </li>
+          <li> Click on the <span class="text-primary">left arrow symbol</span> to go back </li>
+        <li> <span class="text-primary">Paste the resource URI</span> to the top inputfield</li>
+        <li> Then, hit the <span class="text-primary">"GET"-Button</span> to show the graph</li>
+        </ul>
+        </p>
+      </li>
+    </ol>
+        <p> 
+      Do so <b>now</b> before you hit continue.
+    </p>
+<template #footer>
+   <div class="flex justify-content-between">
+      <Button
+        label="End Demo!"
+        class="p-button-outlined"
+        @click="openedDemo9 = false; isInDemoMode = 0; lectorURI='';demoContent='';"
+      />
+       <Button
+       v-if="isLoggedIn"
+        label="Continue!"
+        class="p-button-outlined"
+        autofocus
+        @click="openedDemo9 = false; isInDemoMode = 10; openedDemo10 = true;" 
+      />
+      </div>
+    </template>
+  </Dialog>
+
+  <Dialog header="Pondering the Implications ..." v-model:visible="openedDemo10" position="bottomleft" style="max-width:24vw">
+    <p> 
+      Imagine that we were to modify our document that you just referenced from your document.
+      Assume that we recalculate the Linked Data Signature.
+    </p>
+    <p>
+   Your document would still point to the URI of our original document. 
+   </p> 
+   <p>
+     If we update our resource at the same URI, the signature values do not match.
+     If we had not recalculated the Linked Data Signature, the signature would be invalid.
+     To avoid this, we have to create a new document at a new Signed URI. 
+     </p>
+     <p>
+      You could choose to also update YOUR resource, i.e. creating a document at a new Signed URI.
+      But not everyone that references our resource may be do alike. 
+   Or, you may simply not even update your resource in the first place.
+   </p><p class="text-primary">
+   The more documents reference a particular document, the more documents need to be 
+   "updated" and the more users need to be convinced to do so for a non-evident modification of a resource.
+      </p>
+   <!-- <p>
+     <b>TL;DR</b> </p><p>
+     In graph like this, consisting of documents with Linked Data Signatures available at Signed URIs, links among documents contribute the the documents' integrity.
+When a document is modified, its signature value changes, the existing Signed URI mismatches and the modification becomes discoverable. 
+For a modification to become undiscoverable, a new Signed URI is to be used and all documents that (transitively) reference the original documents are to be updated (with respective new Sigend URIs) as well.
+Since these documents are not necessarily under control of one user but many different users, e.g. messages in a chat or comments on a post, all users have to agree on such undiscoverable updates.
+Otherwise, <i>some</i> evidence will remain.
+   </p> -->
+<template #footer>
+   <div class="flex justify-content-between">
+      <Button
+        label="End Demo!"
+        class="p-button-outlined"
+        @click="openedDemo10 = false; isInDemoMode = 0; lectorURI='';demoContent='';"
+      />
+       <Button
+       v-if="isLoggedIn"
+        label="Continue!"
+        class="p-button-outlined"
+        autofocus
+        @click="openedDemo10 = false; isInDemoMode = 11; openedDemo11 = true;" 
+      />
+      </div>
+    </template>
+  </Dialog>
+
+
+
+   <Dialog header="Congratulations!" v-model:visible="openedDemo11" position="center">
    <p>
      You have successfully completed part 2 of the demo! 
    </p>
-   <p>
-     Did you create a resource at a Signed URI with the link we provided? <br />
-      If so, you can now copy that URI, go back to the Graph Viz, and admire your <br />
-      addition to the document graph!
-    </p>
   <p>
-    Thank you for trying out our demo! <br />
+    Thank you for trying out our demo! </p>
+  <p>
     If you have any remarks, questions or ideas for improvement, please let us know! <br />
     You are always welcome to open an issue in the GitHub repository :) 
 </p>
@@ -324,17 +438,12 @@
     </div>
     </div>
 <template #footer>
-   <div class="flex justify-content-between">
-      <Button
-        label="Thanks!"
-        class="p-button-outlined"
-        @click="openedDemo8 = false; isInDemoMode = 0; lectorURI='';demoContent='';"
-      />
+   <div class="flex-end">
        <Button
         label="Finish!"
         class="p-button-outlined"
         autofocus
-        @click="openedDemo8 = false;isInDemoMode = 0; lectorURI='';demoContent='';" 
+        @click="openedDemo11 = false;isInDemoMode = 0; lectorURI='';demoContent='';" 
       />
       </div>
     </template>
@@ -366,7 +475,7 @@ export default defineComponent({
   components: { Scribe, Lector, LoginButton },
   setup() {
     const { authFetch, sessionInfo } = useSolidSession();
-    const { isLoggedIn } = toRefs(sessionInfo);
+    const { isLoggedIn, webId } = toRefs(sessionInfo);
     const toast = useToast();
     const openedDemo = ref(true);
     const openedDemo2 = ref(false);
@@ -376,6 +485,9 @@ export default defineComponent({
     const openedDemo6 = ref(false);
     const openedDemo7 = ref(false);
     const openedDemo8 = ref(false);
+    const openedDemo9 = ref(false);
+    const openedDemo10 = ref(false);
+    const openedDemo11 = ref(false);
     const isInDemoMode = ref(0);
     const selected = ref(0);
     const scribeURI = ref("");
@@ -469,6 +581,27 @@ export default defineComponent({
           }
           openedDemo7.value = true;
           break;
+        case 8:
+          if (selected.value == 0) {
+            toastWrongView();
+            return;
+          }
+          openedDemo8.value = true;
+          break;
+        case 9:
+          if (selected.value == 0) {
+            toastWrongView();
+            return;
+          }
+          openedDemo9.value = true;
+          break;
+        case 10:
+          if (selected.value == 1) {
+            toastWrongView();
+            return;
+          }
+          openedDemo10.value = true;
+          break;
         default:
           openedDemo.value = true;
       }
@@ -556,6 +689,7 @@ export default defineComponent({
     const demoContent = ref("");
     return {
       isLoggedIn,
+      webId,
       select,
       selected,
       unselect,
@@ -580,6 +714,9 @@ export default defineComponent({
       demoContent,
       openedDemo7,
       openedDemo8,
+      openedDemo9,
+      openedDemo10,
+      openedDemo11,
     };
   },
 });

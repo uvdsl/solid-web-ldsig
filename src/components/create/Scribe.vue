@@ -36,6 +36,7 @@
     @selectedCryptoKey="resumeSaveAction"
     @hide="displayKeyDialog = false"
     :display="displayKeyDialog"
+    :demo="demoContent !== ''"
   />
 </template>
 

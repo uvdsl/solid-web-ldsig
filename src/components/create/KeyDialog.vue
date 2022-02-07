@@ -2,14 +2,36 @@
   <Dialog
     header="Choose your private key."
     v-model:visible="showKeyDialog"
-    modal
+    :modal="!demoMode"
     @hide="emitHide"
   >
     <KeyManager @selectedKey="setSelectedKey" />
+
+      <Dialog v-model:visible="demoMode" position="top" :closable="false" modal>
+        Create a Key Pair and sign the resource:
+        <p>
+        <ul>
+          <li> <span class="text-primary">provide a name</span> for a new key pair </li>
+          <li> Then, hit the <span class="text-primary">"+"-Button</span> to create it</li>
+          <li> <span class="text-primary">Select the key</span> from the list</li>
+          <li> Then, hit the <span class="text-primary">"sign"-Button</span> to continue</li>
+        </ul>
+        </p>
+         <p>
+          You can then hit <span class="text-primary">"Continue!"</span> on the other dialog.
+    </p>
+        <p> 
+      Do so <b>now</b>.
+        </p>
+       
+  </Dialog>
+
     <template #footer>
       <Button label="sign" @click="emitSelectedKey" />
     </template>
   </Dialog>
+
+ 
 
 </template>
 
@@ -23,7 +45,7 @@ export default defineComponent({
   components: {
     KeyManager,
   },
-  props: { display: Boolean },
+  props: { display: Boolean, demo: Boolean },
   emits: ["selectedCryptoKey", "hide"],
   setup(props, context) {
     const toast = useToast();
@@ -34,6 +56,8 @@ export default defineComponent({
         showKeyDialog.value = props.display;
       }
     );
+    const demoMode = ref(false)
+    watch (() => props.demo, () => demoMode.value =  props.demo, {immediate:true})
 
     let selectedKey: { uri: string; label: string; pubKeyLoc: string, jwk: string };
 
@@ -69,6 +93,7 @@ export default defineComponent({
       setSelectedKey,
       emitSelectedKey,
       emitHide,
+      demoMode
     };
   },
 });
