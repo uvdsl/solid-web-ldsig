@@ -427,7 +427,7 @@ Otherwise, <i>some</i> evidence will remain.
     Thank you for trying out our demo! </p>
   <p>
     If you have any remarks, questions or ideas for improvement, please let us know! <br />
-    You are always welcome to open an issue in the GitHub repository :) 
+    You are always welcome to open an issue in our code repository :) 
 </p>
 <div class="flex flex-wrap align-items-center" >
       <div style="margin:15px 0px 15px 0px;">Check out our:</div>
